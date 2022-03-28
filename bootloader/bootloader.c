@@ -173,7 +173,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     uint64_t kernelSize = FileSize(kernelHandle);
     uint8_t  *kernelBuf = AllocatePool(kernelSize);
 
-    uefi_call_wrapper(FileHandle->Read, 3, kernelHandle, &kernelSize, kernelBuf);
+    uefi_call_wrapper(kernelHandle->Read, 3, kernelHandle, &kernelSize, kernelBuf);
 
 
     // Tell UEFI to shut down any of it's services. We're on our own now.
@@ -205,7 +205,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     // Jump to the kernel address (not actually kernel address, haven't gotten a parser working yet. This is a placeholder.)
     typedef int func(void);
     func* f = (func*)0xdeadbeef;
-    int i = f();
+    f();
     
     return Status;
 }
