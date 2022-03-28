@@ -19,7 +19,7 @@ Then, update your packages:
 Then, install Make:
 `sudo apt install make`
 
-Then, install build-essential (This'll take a bit):
+Then, install build-essential:
 `sudo apt install build-essential`
 
 Then, install mtools:
