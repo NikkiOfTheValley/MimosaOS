@@ -1,6 +1,7 @@
 #include <efi.h>
 #include <efilib.h>
 #include <stddef.h>
+#include "include/file_handling.h"
 //#include <include/bootloader_tty.h>
 
 #if 0
@@ -201,7 +202,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     // Plot 1 white pixel
     *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 10 + 4 * 10)) = 0xFFFFFFFF;
 
-    // Jump to the kernel address
+    // Jump to the kernel address (not actually kernel address, haven't gotten a parser working yet. This is a placeholder.)
     typedef int func(void);
     func* f = (func*)0xdeadbeef;
     int i = f();
