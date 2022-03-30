@@ -249,9 +249,9 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
     // More debug info
     draw_byte((uint8_t)(header_magic), 200, 200);
-    draw_byte((uint8_t)(header_magic << 8), 208, 200);
-    draw_byte((uint8_t)(header_magic << 16), 216, 200);
-    draw_byte((uint8_t)(header_magic << 24), 224, 200);
+    draw_byte((uint8_t)(header_magic << 8), 216, 200);
+    draw_byte((uint8_t)(header_magic << 16), 224, 200);
+    draw_byte((uint8_t)(header_magic << 24), 232, 200);
 
     if (header_magic == 0x464C457F)
     {
