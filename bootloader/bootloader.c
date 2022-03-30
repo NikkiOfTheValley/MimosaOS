@@ -236,10 +236,10 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     
     uint64_t header_magic = 0;
 
-    header_magic |= kernelBuf[0] >> 24;
-    header_magic |= kernelBuf[1] >> 16;
-    header_magic |= kernelBuf[2] >> 8;
-    header_magic |= kernelBuf[3];
+    header_magic |= (uint64_t)kernelBuf[0] >> 24;
+    header_magic |= (uint64_t)kernelBuf[1] >> 16;
+    header_magic |= (uint64_t)kernelBuf[2] >> 8;
+    header_magic |= (uint64_t)kernelBuf[3];
 
     // Debug info
     for (size_t y = 0; y < gop->Mode->Info->VerticalResolution - 5; y++)
@@ -253,7 +253,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     draw_byte((uint8_t)(header_magic << 16), 216, 200);
     draw_byte((uint8_t)(header_magic << 24), 224, 200);
 
-    if (header_magic == 0x7F454C46)
+    if (header_magic == 0x464C457F)
     {
         *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 201 + 4 * 200)) = 0xFFFFFFFF;
     }
