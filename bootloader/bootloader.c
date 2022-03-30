@@ -290,9 +290,9 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     }
 
     draw_byte(header_magic, 200, 200);
-    draw_byte(header_magic >> 8, 200, 200);
-    draw_byte(header_magic >> 16, 200, 200);
-    draw_byte(header_magic >> 24, 200, 200);
+    draw_byte(header_magic >> 8, 200, 208);
+    draw_byte(header_magic >> 16, 200, 216);
+    draw_byte(header_magic >> 24, 200, 224);
 
     
     framebuffer_info framebuf;
