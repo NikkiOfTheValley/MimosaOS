@@ -178,6 +178,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
         gop->Mode->Info->PixelsPerScanLine
     );
 
+
     // Get a volume handle to the volume the bootloader has been loaded from
 
     EFI_LOADED_IMAGE *loaded_image = NULL;                  // Image interface
@@ -187,9 +188,9 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     EFI_FILE_HANDLE volumeHandle;                           // The volume's interface
  
     // Get the loaded image protocol interface for the "image"
-    uefi_call_wrapper(BS->HandleProtocol, 3, ImageHandle, &lipGuid, (void **) &loaded_image);
+    uefi_call_wrapper(BS->HandleProtocol, 3, ImageHandle, &lipGuid, (void**) &loaded_image);
     // Get the volume handle
-    uefi_call_wrapper(BS->HandleProtocol, 3, loaded_image->DeviceHandle, &fsGuid, (VOID*)&IOVolume);
+    uefi_call_wrapper(BS->HandleProtocol, 3, loaded_image->DeviceHandle, &fsGuid, (void*)&IOVolume);
     // VolumeHandle = LibOpenRoot(loaded_image->DeviceHandle); // Not sure if this works, so this is commented out
     uefi_call_wrapper(IOVolume->OpenVolume, 2, IOVolume, &volumeHandle);
 
@@ -197,7 +198,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     EFI_FILE_HANDLE kernelHandle; // Kernel file handle
 
     // Get a handle to the kernel file
-    uefi_call_wrapper(volumeHandle->Open, 5, volumeHandle, &kernelHandle, L"kernel.uose", EFI_FILE_MODE_READ, EFI_FILE_READ_ONLY | EFI_FILE_HIDDEN | EFI_FILE_SYSTEM);
+    uefi_call_wrapper(volumeHandle->Open, 5, volumeHandle, &kernelHandle, L"kernel.elf", EFI_FILE_MODE_READ, EFI_FILE_READ_ONLY | EFI_FILE_HIDDEN | EFI_FILE_SYSTEM);
     
 
     // Read from the kernel file and load it into memory
@@ -229,72 +230,41 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     // And finally exit boot services
     Status = uefi_call_wrapper(BS->ExitBootServices, 2, ImageHandle, mapKey);
     ErrorCheck(Status, EFI_SUCCESS);
+
+
+    // Parse the kernel ELF file
     
-
-    // Plot 1 white pixel
-    *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 10 + 4 * 10)) = 0xFFFFFFFF;
-
-
-    // Parse the kernel PE file
-    
-    uint64_t header_offset = 0;
-    header_offset |= kernelBuf[0x3C];
-    header_offset |= kernelBuf[0x3C] << 8;
-    header_offset |= kernelBuf[0x3C] << 16;
-    header_offset |= kernelBuf[0x3C] << 24;
-
     uint64_t header_magic = 0;
-    header_magic |= kernelBuf[header_offset];
-    header_magic |= kernelBuf[header_offset] << 8;
-    header_magic |= kernelBuf[header_offset] << 16;
-    header_magic |= kernelBuf[header_offset] << 24;
 
-    if (header_magic == 0x00004550)
-    {
-        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 11 + 4 * 250)) = 0xFFFFFFFF;
-        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 12 + 4 * 250)) = 0xFFFFFFFF;
-        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 13 + 4 * 250)) = 0xFFFFFFFF;
-        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 14 + 4 * 250)) = 0xFFFFFFFF;
-    }
-    else
-    {
-        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 11 + 4 * 250)) = 0xFF00FFFF;
-        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 12 + 4 * 250)) = 0xFF00FFFF;
-        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 13 + 4 * 250)) = 0xFF00FFFF;
-        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 14 + 4 * 250)) = 0xFF00FFFF;
+    header_magic |= kernelBuf[0] >> 24;
+    header_magic |= kernelBuf[1] >> 16;
+    header_magic |= kernelBuf[2] >> 8;
+    header_magic |= kernelBuf[3];
 
-    }
-
-    for (size_t y = 0; y < 295; y++)
+    // Debug info
+    for (size_t y = 0; y < gop->Mode->Info->VerticalResolution - 5; y++)
     {
-        /*for (size_t x = 0; x < 8; x++)
-        {
-            size_t _x = x * 2;
-            size_t _y = y * 2;
-            if (!!((kernelBuf[y]) & (1 << (x))))
-            {
-                *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * _y + 4 * _x)) = 0xFFFFFFFF;
-                *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * (_y + 1) + 4 * _x)) = 0xFFFFFFFF;
-                *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * _y + 4 * (_x + 1))) = 0xFFFFFFFF;
-                *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * (_y + 1) + 4 * (_x + 1))) = 0xFFFFFFFF;
-            }
-            else
-            {
-                *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * _y + 4 * _x)) = 0xAAAAAAAA;
-                *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * (_y + 1) + 4 * _x)) = 0xAAAAAAAA;
-                *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * _y + 4 * (_x + 1))) = 0xAAAAAAAA;
-                *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * (_y + 1) + 4 * (_x + 1))) = 0xAAAAAAAA;
-            }
-        }*/
         draw_byte(kernelBuf[y], 0, y);
     }
 
-    draw_byte(header_magic, 200, 200);
-    draw_byte(header_magic >> 8, 200, 208);
-    draw_byte(header_magic >> 16, 200, 216);
-    draw_byte(header_magic >> 24, 200, 224);
+    // More debug info
+    draw_byte((uint8_t)(header_magic), 200, 200);
+    draw_byte((uint8_t)(header_magic << 8), 208, 200);
+    draw_byte((uint8_t)(header_magic << 16), 216, 200);
+    draw_byte((uint8_t)(header_magic << 24), 224, 200);
 
-    
+    if (header_magic == 0x7F454C46)
+    {
+        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 201 + 4 * 200)) = 0xFFFFFFFF;
+    }
+    else
+    {
+        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 201 + 4 * 200)) = 0x00FFFFFF;
+    }
+
+
+    // Initilize a struct with the required framebuffer info to pass to the kernel, so drawing is still possible
+
     framebuffer_info framebuf;
     framebuf.base_address = gop->Mode->FrameBufferBase;
     framebuf.width = gop->Mode->Info->HorizontalResolution;
