@@ -18,7 +18,7 @@ gcc -ffreestanding -Ikernel/inc -c -o kernel.o kernel/kernel.c
 gcc -nostdlib -nostartfiles -Wl,-e"k_main" -o kernel.elf kernel.o
 
 # Add the kernel to the FAT image
-mcopy -i fat.img kernel.uose ::/kernel.elf
+mcopy -i fat.img kernel.elf ::/kernel.elf
 
 # Clean up files
 rm kernel.o

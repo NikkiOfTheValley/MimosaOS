@@ -271,7 +271,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     framebuf.height = gop->Mode->Info->VerticalResolution;
     framebuf.pitch = gop->Mode->Info->PixelsPerScanLine;
 
-    // Jump to the kernel address (not actually kernel address, haven't gotten a parser working yet. This is a placeholder.)
+    // Jump to the kernel address (not actually kernel address, haven't gotten a ELF loader working yet. This is a placeholder.)
     typedef int k_main(framebuffer_info framebuffer);
     k_main* k = (k_main*)0xdeadbeef;
     k(framebuf);
