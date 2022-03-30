@@ -1,0 +1,5 @@
+/.vscode
+/BOOTX64.EFI
+/fat.img
+/kernel.o
+/kernel.uose

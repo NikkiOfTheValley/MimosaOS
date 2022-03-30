@@ -14,8 +14,8 @@ mmd -i fat.img ::/EFI/BOOT
 mcopy -i fat.img BOOTX64.EFI ::/EFI/BOOT
 
 # Compile the kernel into a UOSE binary so it can be loaded and executed by the bootloader
-x86_64-w64-mingw32-gcc -ffreestanding -Ikernel/inc -c -o kernel.o kernel/kernel.c
-x86_64-w64-mingw32-gcc -nostdlib -Wl,-dll -shared -Wl,--subsystem,10 -o kernel.uose kernel.o
+gcc -ffreestanding -Ikernel/inc -c -o kernel.o kernel/kernel.c
+gcc -nostdlib -o kernel.uose kernel.o
 
 # Add the kernel to the FAT image
-mcopy -i fat.img kernel.uose ::/
+mcopy -i fat.img kernel.uose ::/kernel/

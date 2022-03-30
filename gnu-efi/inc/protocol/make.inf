@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #
 #
 #
@@ -11,3 +12,18 @@
 [ia32sources]
 
 [ia64sources]
+=======
+#
+#
+#
+
+[sources]
+    efivar.h
+	legacyboot.h
+	VgaClass.h
+    intload.h
+
+[ia32sources]
+
+[ia64sources]
+>>>>>>> 7a445c4 (first commit)

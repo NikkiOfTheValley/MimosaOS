@@ -25,9 +25,6 @@ Then, install build-essential:
 Then, install mtools:
 `sudo apt-get install mtools`
 
-Then, install this weird version of GCC:
-`sudo apt install gcc-mingw-w64-x86-64`
-
 Then, execute the build script:
 `./build.sh`
 

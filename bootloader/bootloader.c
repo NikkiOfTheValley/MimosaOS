@@ -1,6 +1,7 @@
 #include <efi.h>
 #include <efilib.h>
 #include <stddef.h>
+#include <stdbool.h>
 #include "include/file_handling.h"
 //#include <include/bootloader_tty.h>
 
@@ -36,6 +37,9 @@ void dump_stack_helper(uint64_t rsp_val)
 EFI_STATUS Status;
 EFI_INPUT_KEY Key;
 
+EFI_GUID gopGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
+EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
+
 
 // Waits for user input from the keyboard
 void WaitForInput() {
@@ -47,6 +51,37 @@ void WaitForInput() {
     
     while ((Status = ST->ConIn->ReadKeyStroke(ST->ConIn, &Key)) == EFI_NOT_READY);
 }
+
+void draw_byte(uint8_t input, unsigned int X, unsigned int Y)
+{
+    for (size_t i = 0; i < 8; i++)
+    {
+        size_t _i = (i * 2) + X;
+        size_t _y = Y * 2;
+        if (!!((input) & (1 << (i))))
+        {
+            *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * _y + 4 * _i)) = 0xFFFFFFFF;
+            *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * (_y + 1) + 4 * _i)) = 0xFFFFFFFF;
+            *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * _y + 4 * (_i + 1))) = 0xFFFFFFFF;
+            *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * (_y + 1) + 4 * (_i + 1))) = 0xFFFFFFFF;
+        }
+        else
+        {
+            *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * _y + 4 * _i)) = 0xAAAAAAAA;
+            *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * (_y + 1) + 4 * _i)) = 0xAAAAAAAA;
+            *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * _y + 4 * (_i + 1))) = 0xAAAAAAAA;
+            *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * (_y + 1) + 4 * (_i + 1))) = 0xAAAAAAAA;
+        }
+    }
+}
+
+typedef struct framebuffer_info {
+    int base_address;
+    int width;
+    int height;
+    int pitch;
+} framebuffer_info;
+
 
 EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     InitializeLib(ImageHandle, SystemTable);
@@ -78,9 +113,6 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     // Locate the GOP
 
     Print(L"Locating GOP\r\n");
-	
-	EFI_GUID gopGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
-	EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
 
     // Locate the GOP
 	Status = uefi_call_wrapper(BS->LocateProtocol, 3, &gopGuid, NULL, (void**)&gop);
@@ -132,7 +164,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
             info->HorizontalResolution,
             info->VerticalResolution,
             info->PixelFormat,
-            i == nativeMode ? "(current)" : ""
+            i == nativeMode ? L"(current)" : L""
         );
     }
 
@@ -171,11 +203,11 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     // Read from the kernel file and load it into memory
 
     uint64_t kernelSize = FileSize(kernelHandle);
-    uint8_t  *kernelBuf = AllocatePool(kernelSize);
+    uint8_t *kernelBuf = AllocatePool(kernelSize);
 
     uefi_call_wrapper(kernelHandle->Read, 3, kernelHandle, &kernelSize, kernelBuf);
 
-
+    
     // Tell UEFI to shut down any of it's services. We're on our own now.
 
     UINTN mapSize = 0, mapKey, descriptorSize;
@@ -197,15 +229,83 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     // And finally exit boot services
     Status = uefi_call_wrapper(BS->ExitBootServices, 2, ImageHandle, mapKey);
     ErrorCheck(Status, EFI_SUCCESS);
-
+    
 
     // Plot 1 white pixel
     *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 10 + 4 * 10)) = 0xFFFFFFFF;
 
-    // Jump to the kernel address (not actually kernel address, haven't gotten a parser working yet. This is a placeholder.)
-    typedef int func(void);
-    func* f = (func*)0xdeadbeef;
-    f();
+
+    // Parse the kernel PE file
     
+    uint64_t header_offset = 0;
+    header_offset |= kernelBuf[0x3C];
+    header_offset |= kernelBuf[0x3C] << 8;
+    header_offset |= kernelBuf[0x3C] << 16;
+    header_offset |= kernelBuf[0x3C] << 24;
+
+    uint64_t header_magic = 0;
+    header_magic |= kernelBuf[header_offset];
+    header_magic |= kernelBuf[header_offset] << 8;
+    header_magic |= kernelBuf[header_offset] << 16;
+    header_magic |= kernelBuf[header_offset] << 24;
+
+    if (header_magic == 0x00004550)
+    {
+        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 11 + 4 * 250)) = 0xFFFFFFFF;
+        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 12 + 4 * 250)) = 0xFFFFFFFF;
+        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 13 + 4 * 250)) = 0xFFFFFFFF;
+        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 14 + 4 * 250)) = 0xFFFFFFFF;
+    }
+    else
+    {
+        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 11 + 4 * 250)) = 0xFF00FFFF;
+        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 12 + 4 * 250)) = 0xFF00FFFF;
+        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 13 + 4 * 250)) = 0xFF00FFFF;
+        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 14 + 4 * 250)) = 0xFF00FFFF;
+
+    }
+
+    for (size_t y = 0; y < 295; y++)
+    {
+        /*for (size_t x = 0; x < 8; x++)
+        {
+            size_t _x = x * 2;
+            size_t _y = y * 2;
+            if (!!((kernelBuf[y]) & (1 << (x))))
+            {
+                *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * _y + 4 * _x)) = 0xFFFFFFFF;
+                *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * (_y + 1) + 4 * _x)) = 0xFFFFFFFF;
+                *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * _y + 4 * (_x + 1))) = 0xFFFFFFFF;
+                *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * (_y + 1) + 4 * (_x + 1))) = 0xFFFFFFFF;
+            }
+            else
+            {
+                *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * _y + 4 * _x)) = 0xAAAAAAAA;
+                *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * (_y + 1) + 4 * _x)) = 0xAAAAAAAA;
+                *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * _y + 4 * (_x + 1))) = 0xAAAAAAAA;
+                *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * (_y + 1) + 4 * (_x + 1))) = 0xAAAAAAAA;
+            }
+        }*/
+        draw_byte(kernelBuf[y], 0, y);
+    }
+
+    draw_byte(header_magic, 200, 200);
+    draw_byte(header_magic >> 8, 200, 200);
+    draw_byte(header_magic >> 16, 200, 200);
+    draw_byte(header_magic >> 24, 200, 200);
+
+    
+    framebuffer_info framebuf;
+    framebuf.base_address = gop->Mode->FrameBufferBase;
+    framebuf.width = gop->Mode->Info->HorizontalResolution;
+    framebuf.height = gop->Mode->Info->VerticalResolution;
+    framebuf.pitch = gop->Mode->Info->PixelsPerScanLine;
+
+    // Jump to the kernel address (not actually kernel address, haven't gotten a parser working yet. This is a placeholder.)
+    typedef int k_main(framebuffer_info framebuffer);
+    k_main* k = (k_main*)0xdeadbeef;
+    k(framebuf);
+    
+    // Kernel shouldn't ever exit, but GCC complains if you leave out the return statement
     return Status;
 }
