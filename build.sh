@@ -18,4 +18,4 @@ gcc -ffreestanding -Ikernel/inc -c -o kernel.o kernel/kernel.c
 gcc -nostdlib -o kernel.uose kernel.o
 
 # Add the kernel to the FAT image
-mcopy -i fat.img kernel.uose ::/kernel/
+mcopy -i fat.img kernel.uose ::/kernel
