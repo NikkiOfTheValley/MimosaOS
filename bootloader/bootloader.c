@@ -240,7 +240,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     header_magic |= (uint32_t)kernelBuf[1] << 16;
     header_magic |= (uint32_t)kernelBuf[2] << 8;
     header_magic |= (uint32_t)kernelBuf[3];
-
+a
     // Debug info
     for (size_t y = 0; y < gop->Mode->Info->VerticalResolution - 5; y++)
     {
