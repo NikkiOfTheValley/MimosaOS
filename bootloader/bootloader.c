@@ -234,12 +234,12 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
     // Parse the kernel ELF file
     
-    uint64_t header_magic = 0;
+    uint32_t header_magic = 0;
 
-    header_magic |= (uint64_t)kernelBuf[0] >> 24;
-    header_magic |= (uint64_t)kernelBuf[1] >> 16;
-    header_magic |= (uint64_t)kernelBuf[2] >> 8;
-    header_magic |= (uint64_t)kernelBuf[3];
+    header_magic |= (uint32_t)kernelBuf[0] << 24;
+    header_magic |= (uint32_t)kernelBuf[1] << 16;
+    header_magic |= (uint32_t)kernelBuf[2] << 8;
+    header_magic |= (uint32_t)kernelBuf[3];
 
     // Debug info
     for (size_t y = 0; y < gop->Mode->Info->VerticalResolution - 5; y++)
@@ -249,9 +249,9 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
     // More debug info
     draw_byte((uint8_t)(header_magic), 200, 200);
-    draw_byte((uint8_t)(header_magic << 8), 216, 200);
-    draw_byte((uint8_t)(header_magic << 16), 224, 200);
-    draw_byte((uint8_t)(header_magic << 24), 232, 200);
+    draw_byte((uint8_t)(header_magic >> 8), 216, 200);
+    draw_byte((uint8_t)(header_magic >> 16), 232, 200);
+    draw_byte((uint8_t)(header_magic >> 24), 248, 200);
 
     if (header_magic == 0x464C457F)
     {
