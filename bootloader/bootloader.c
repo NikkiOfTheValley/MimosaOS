@@ -253,13 +253,13 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     draw_byte((uint8_t)(header_magic >> 16), 232, 200);
     draw_byte((uint8_t)(header_magic >> 24), 248, 200);
 
-    if (header_magic == 0x464C457F)
+    if (header_magic == 0x6232A2FE) // If header_magic == .ELF
     {
-        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 201 + 4 * 200)) = 0xFFFFFFFF;
+        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 208 + 4 * 200)) = 0xFFFFFFFF;
     }
     else
     {
-        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 201 + 4 * 200)) = 0x00FFFFFF;
+        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 208 + 4 * 200)) = 0x00FFFFFF;
     }
 
 
