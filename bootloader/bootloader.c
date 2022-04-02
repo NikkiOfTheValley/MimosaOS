@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include "include/file_handling.h"
-//#include <include/bootloader_tty.h>
+#include "include/bootloader_tty.h"
 
 #if 0
 extern void dump_stack(void);
@@ -231,6 +231,10 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     Status = uefi_call_wrapper(BS->ExitBootServices, 2, ImageHandle, mapKey);
     ErrorCheck(Status, EFI_SUCCESS);
 
+    // Initilize the terminal so printing is possible
+    terminal_initialize(gop->Mode->FrameBufferBase, gop->Mode->Info->PixelsPerScanLine, gop->Mode->Info->HorizontalResolution, gop->Mode->Info->VerticalResolution);
+
+    terminal_writestring("Loading kernel...\n");
 
     // Parse the kernel ELF file
     
@@ -255,11 +259,13 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
     if (header_magic == 0x6232A2FE) // If header_magic == .ELF
     {
-        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 208 + 4 * 200)) = 0xFFFFFFFF;
+        draw_byte((uint8_t)0b11110000, 300, 300);
     }
     else
     {
-        *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * 208 + 4 * 200)) = 0x00FFFFFF;
+        terminal_writestring("Critical Error: Kernel is not an ELF file! Aborting boot!\n");
+
+        while(true) { }
     }
 
 
