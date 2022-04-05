@@ -263,9 +263,9 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     }
     else
     {
-        terminal_writestring("Critical Error: Kernel is not an ELF file! Aborting boot!\n");
-
-        while(true) { }
+        terminal_writestring("Critical Error: Kernel is not an ELF file! Stopping boot!\n");
+        
+        while (true) { }
     }
 
 
