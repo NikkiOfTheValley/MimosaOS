@@ -35,5 +35,6 @@ void draw_byte(uint8_t input, unsigned int X, unsigned int Y)
 
 int k_main(framebuffer_info framebuffer)
 {
+    framebuf = framebuffer;
     draw_byte(0b11110000, 200, 200);
 }
