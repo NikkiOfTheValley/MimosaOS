@@ -1,17 +1,7 @@
 // An extremely basic TTY used in the bootloader after calling ExitBootServices,
 // as any UEFI TTY functions do not work after calling ExitBootServices
 
-// Font definition
-uint64_t font[256] = {
-((uint64_t)0b10000000 << 0) |
-((uint64_t)0b01000000 << 8) |
-((uint64_t)0b00100000 << 16) |
-((uint64_t)0b00010000 << 24) |
-((uint64_t)0b00001000 << 32) |
-((uint64_t)0b00000100 << 40) |
-((uint64_t)0b00000010 << 48) |
-((uint64_t)0b00000001 << 56)
-};
+#include "font.h"
 
 int framebuffer_addr = 0;
 int pitch = 0;
@@ -21,6 +11,9 @@ int framebuffer_height = 0;
 int cursorX = 0;
 int cursorY = 0;
 
+int consoleHeight = -1;
+int consoleWidth = -1;
+
 // Initilizes the "terminal" with the given framebuffer address and pitch
 void terminal_initialize(int _framebuffer_addr, int _pitch, int width, int height)
 {
@@ -28,22 +21,52 @@ void terminal_initialize(int _framebuffer_addr, int _pitch, int width, int heigh
     pitch = _pitch;
     framebuffer_width = width;
     framebuffer_height = height;
+
+    consoleHeight = framebuffer_height / 8; // Console height is framebuffer height / 8 because the characters are 8 pixels in size
+    consoleWidth = framebuffer_width / 8; // Console width is the same
 }
 
 // Draws character `c` at `x`, `y`, with color `color`
-void terminal_putchar(unsigned char c, unsigned int x, unsigned int y, unsigned int color)
+void terminal_putchar(unsigned char c, int x, int y, unsigned int color)
 {
+    uint32_t glyph[8][8] = font[c];
 
+    glyph = glyph;
 }
 
 // Writes the string `data` of length `length` to the "terminal"
-void terminal_write()
+void terminal_write(const char* data, size_t length)
 {
+    if (consoleWidth == -1 || consoleWidth == -1)
+    {
+        // Console hasn't been initilized, display error
+        // TODO: Actually display error
+    }
 
+    for (size_t i = 0; i < length; i++)
+    {
+        char c = data[i];
+
+        if (c == '\n')
+        {
+            cursorY++;
+        }
+
+
+
+        cursorX++;
+
+        if (cursorX > consoleWidth)
+        {
+            cursorX = 0;
+            cursorY++;
+        }
+    }
+    
 }
 
 // Writes the string `data` to the "terminal"
-void terminal_writestring()
+void terminal_writestring(const char* data)
 {
-
+	terminal_write(data, strlen(data));
 }
