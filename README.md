@@ -28,4 +28,4 @@ Then, install mtools:
 Then, execute the build script:
 `./build.sh`
 
-This will produce a `fat.img` file that you can use your preferred tool to put on a storage device. (I use Rufus to do this, I'm not sure if other tools would work.)
+This will produce a `fat.img` file that you can use your preferred tool to put on a storage device.
