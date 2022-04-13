@@ -52,6 +52,7 @@ void WaitForInput() {
     while ((Status = ST->ConIn->ReadKeyStroke(ST->ConIn, &Key)) == EFI_NOT_READY);
 }
 
+// Draws a single byte at X, Y
 void draw_byte(uint8_t input, unsigned int X, unsigned int Y)
 {
     for (size_t i = 0; i < 8; i++)
@@ -200,15 +201,26 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     // Get a handle to the kernel file
     uefi_call_wrapper(volumeHandle->Open, 5, volumeHandle, &kernelHandle, L"kernel.elf", EFI_FILE_MODE_READ, EFI_FILE_READ_ONLY | EFI_FILE_HIDDEN | EFI_FILE_SYSTEM);
     
-
     // Read from the kernel file and load it into memory
 
     uint64_t kernelSize = FileSize(kernelHandle);
     uint8_t *kernelBuf = AllocatePool(kernelSize);
 
     uefi_call_wrapper(kernelHandle->Read, 3, kernelHandle, &kernelSize, kernelBuf);
-
     
+
+    EFI_FILE_HANDLE fontHandle; // Font file handle
+
+    // Get a handle to the font file
+    uefi_call_wrapper(volumeHandle->Open, 5, volumeHandle, &fontHandle, L"font.font", EFI_FILE_MODE_READ, EFI_FILE_READ_ONLY | EFI_FILE_HIDDEN | EFI_FILE_SYSTEM);
+
+    // Read the font file and load it into memory
+    
+    uint64_t fontSize = FileSize(fontHandle);
+    uint8_t *fontBuf = AllocatePool(fontSize);
+
+    uefi_call_wrapper(kernelHandle->Read, 3, fontHandle, &fontSize, fontBuf);
+
     // Tell UEFI to shut down any of it's services. We're on our own now.
 
     UINTN mapSize = 0, mapKey, descriptorSize;
@@ -232,9 +244,11 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     ErrorCheck(Status, EFI_SUCCESS);
 
     // Initilize the terminal so printing is possible
-    terminal_initialize(gop->Mode->FrameBufferBase, gop->Mode->Info->PixelsPerScanLine, gop->Mode->Info->HorizontalResolution, gop->Mode->Info->VerticalResolution);
+    terminal_initialize((void*)gop->Mode->FrameBufferBase, gop->Mode->Info->PixelsPerScanLine, gop->Mode->Info->HorizontalResolution, gop->Mode->Info->VerticalResolution, &fontBuf);
 
     terminal_writestring("Loading kernel...\n");
+
+    while(true) { }
 
     // Parse the kernel ELF file
     
@@ -264,7 +278,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     else
     {
         terminal_writestring("Critical Error: Kernel is not an ELF file! Stopping boot!\n");
-        
+
         while (true) { }
     }
 
