@@ -20,9 +20,6 @@ gcc -nostdlib -nostartfiles -Wl,-e"k_main" -o kernel.elf kernel.o
 # Add the kernel to the FAT image
 mcopy -i fat.img kernel.elf ::/kernel.elf
 
-# Add the font to the FAT image
-mcopy -i fat.img font.font ::/font.font
-
 # Clean up files
 rm kernel.o
 rm kernel.elf

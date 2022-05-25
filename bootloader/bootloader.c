@@ -59,6 +59,7 @@ void draw_byte(uint8_t input, unsigned int X, unsigned int Y)
     {
         size_t _i = (i * 2) + X;
         size_t _y = Y * 2;
+
         if (!!((input) & (1 << (i))))
         {
             *((uint32_t*)(gop->Mode->FrameBufferBase + 4 * gop->Mode->Info->PixelsPerScanLine * _y + 4 * _i)) = 0xFFFFFFFF;
@@ -209,18 +210,6 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     uefi_call_wrapper(kernelHandle->Read, 3, kernelHandle, &kernelSize, kernelBuf);
     
 
-    EFI_FILE_HANDLE fontHandle; // Font file handle
-
-    // Get a handle to the font file
-    uefi_call_wrapper(volumeHandle->Open, 5, volumeHandle, &fontHandle, L"font.font", EFI_FILE_MODE_READ, EFI_FILE_READ_ONLY | EFI_FILE_HIDDEN | EFI_FILE_SYSTEM);
-
-    // Read the font file and load it into memory
-    
-    uint64_t fontSize = FileSize(fontHandle);
-    uint8_t *fontBuf = AllocatePool(fontSize);
-
-    uefi_call_wrapper(kernelHandle->Read, 3, fontHandle, &fontSize, fontBuf);
-
     // Tell UEFI to shut down any of it's services. We're on our own now.
 
     UINTN mapSize = 0, mapKey, descriptorSize;
@@ -244,10 +233,11 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     ErrorCheck(Status, EFI_SUCCESS);
 
     // Initilize the terminal so printing is possible
-    terminal_initialize((void*)gop->Mode->FrameBufferBase, gop->Mode->Info->PixelsPerScanLine, gop->Mode->Info->HorizontalResolution, gop->Mode->Info->VerticalResolution, &fontBuf);
+    terminal_initialize((void*)gop->Mode->FrameBufferBase, gop->Mode->Info->PixelsPerScanLine, gop->Mode->Info->HorizontalResolution, gop->Mode->Info->VerticalResolution);
 
     terminal_writestring("Loading kernel...\n");
 
+    // Stop here, as there's a few problems and I'd like to figure out where they're occuring.
     while(true) { }
 
     // Parse the kernel ELF file
@@ -278,7 +268,9 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     else
     {
         terminal_writestring("Critical Error: Kernel is not an ELF file! Stopping boot!\n");
+        terminal_writestring("Please restart your machine. (I am too lazy to implement AHCI drivers)\n");
 
+        // Stop here, so the user can power off without causing problems.
         while (true) { }
     }
 
@@ -296,6 +288,13 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     k_main* k = (k_main*)0xdeadbeef;
     k(framebuf);
     
+    // Framebuffer and data to do with writing to said framebuffer should still be valid, so this should still work.
+    terminal_writestring("Unrecoverable Error Detected! Halting!\n");
+    terminal_writestring("Please restart your machine. (I am too lazy to implement AHCI drivers)\n");
+
+    // Stop here, so the user can power off without causing problems.
+    while(true) {}
+
     // Kernel shouldn't ever exit, but GCC complains if you leave out the return statement
     return Status;
 }
