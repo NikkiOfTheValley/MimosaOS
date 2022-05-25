@@ -1,8 +1,6 @@
 // An extremely basic TTY used in the bootloader after calling ExitBootServices,
 // as any UEFI TTY functions do not work after calling ExitBootServices
 
-//#include "font_bitmask.h"
-
 #include "font.h"
 
 uint64_t* framebuffer_addr = 0;
@@ -37,7 +35,7 @@ void terminal_initialize(uint64_t* _framebuffer_addr, uint32_t _pitch, int width
     consoleWidth = framebuffer_width / 8; // Console width is the same
 }
 
-// Prints character 'c' at x, y
+// Prints character 'c' at X, Y
 void terminal_putc(char c, int X, int Y)
 {
     // Character image pointer
@@ -47,10 +45,10 @@ void terminal_putc(char c, int X, int Y)
     {
         for (int x = 0; x > 8; x++)
         {
-            uint32_t char_pixel = (*((uint32_t*)char_img_addr + x + (y * font.width)) >> 8) & 0xFF000000;
+            uint32_t char_pixel = (*((uint32_t*)char_img_addr + x + (y * font.width)) << 8) & 0xFF000000;
 
             //*((uint32_t*)((uint64_t)framebuffer_addr * pitch * y + Y * x + X)) = char_pixel;
-            *(uint64_t*)((uint64_t)framebuffer_addr * (pitch * y + Y * x + X)) = char_pixel;
+            *(uint64_t*)(framebuffer_addr + (x + X + (y + Y * framebuffer_width))) = char_pixel;
         }
     }
 }
@@ -75,7 +73,7 @@ void terminal_write(const char* data, size_t length)
             break;
         }
 
-        terminal_putc(c, cursorX * 8, cursorY * 8);
+        terminal_putc(c, cursorX * 8 + 100, cursorY * 8+ 100);
 
         cursorX++;
 

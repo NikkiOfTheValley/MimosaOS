@@ -233,7 +233,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     ErrorCheck(Status, EFI_SUCCESS);
 
     // Initilize the terminal so printing is possible
-    terminal_initialize((void*)gop->Mode->FrameBufferBase, gop->Mode->Info->PixelsPerScanLine, gop->Mode->Info->HorizontalResolution, gop->Mode->Info->VerticalResolution);
+    terminal_initialize((uint64_t*)gop->Mode->FrameBufferBase, gop->Mode->Info->PixelsPerScanLine, gop->Mode->Info->HorizontalResolution, gop->Mode->Info->VerticalResolution);
 
     terminal_writestring("Loading kernel...\n");
 
