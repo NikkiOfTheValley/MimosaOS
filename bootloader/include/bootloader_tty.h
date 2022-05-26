@@ -36,21 +36,28 @@ void terminal_initialize(uint64_t* _framebuffer_addr, uint32_t _pitch, int width
 }
 
 // Prints character 'c' at X, Y
-void terminal_putc(char c, int X, int Y)
+void terminal_putc(char c, int x, int y, int fgcolor)
 {
-    // Character image pointer
-    const void* char_img_addr = &font.pixel_data[c * characterWidth * font.bytes_per_pixel];
-
-    for (int y = 0; y > 8; y++)
-    {
-        for (int x = 0; x > 8; x++)
-        {
-            uint32_t char_pixel = (*((uint32_t*)char_img_addr + x + (y * font.width)) << 8) & 0xFF000000;
-
-            //*((uint32_t*)((uint64_t)framebuffer_addr * pitch * y + Y * x + X)) = char_pixel;
-            *(uint64_t*)(framebuffer_addr + (x + X + (y + Y * framebuffer_width))) = char_pixel;
-        }
-    }
+	uint64_t *dest;
+	uint64_t *dest32;
+	unsigned char *src;
+	int row;
+	uint32_t fgcolor32;
+ 
+	fgcolor32 = fgcolor | (fgcolor << 8) | (fgcolor << 16) | (fgcolor << 24);
+	src = &font[0] + c * 16;
+	dest = framebuffer_addr + y * (pitch * 32) + x;
+	for(row = 0; row < 8; row++) {
+		if(*src != 0) {
+			uint32_t mask_low = font_mask[*src][0];
+			uint32_t mask_high = font_mask[*src][1];
+			dest32 = dest;
+			dest32[0] = (dest[0] & ~mask_low) | (fgcolor32 & mask_low);
+			dest32[1] = (dest[1] & ~mask_high) | (fgcolor32 & mask_high);
+		}
+		src++;
+		dest += (pitch * 32);
+	}
 }
 
 // Writes the string `data` of length `length` to the "terminal"
@@ -60,6 +67,7 @@ void terminal_write(const char* data, size_t length)
     {
         // Console hasn't been initilized, display error
         // TODO: Actually display error
+
         return;
     }
 
@@ -73,7 +81,7 @@ void terminal_write(const char* data, size_t length)
             break;
         }
 
-        terminal_putc(c, cursorX * 8 + 100, cursorY * 8+ 100);
+        terminal_putc(c, cursorX * 8, cursorY * 8, 0xFF);
 
         cursorX++;
 
