@@ -7,7 +7,7 @@
 
 #if 0
 extern void dump_stack(void);
-asm(	".globl	dump_stack\n"
+__asm(".globl	dump_stack\n"
 	"dump_stack:\n"
 	"	movq %rsp, %rdi\n"
 	"	jmp *dump_stack_helper@GOTPCREL(%rip)\n"
@@ -78,10 +78,10 @@ void draw_byte(uint8_t input, unsigned int X, unsigned int Y)
 }
 
 typedef struct framebuffer_info {
-    int base_address;
-    int width;
-    int height;
-    int pitch;
+    EFI_PHYSICAL_ADDRESS base_address;
+    uint32_t width;
+    uint32_t height;
+    uint32_t pitch;
 } framebuffer_info;
 
 
@@ -97,7 +97,6 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
         // I'm not sure if this would even get displayed, 
         // as at this point it's been proven that ConOut is somehow broken
         Print(L"Sanity check failed\r\n"); 
-        
         WaitForInput();
         return Status;
     }
@@ -112,7 +111,6 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
     Print(L"All sanity checks passed, continuing\r\n\r\n");
 
-    // Locate the GOP
 
     Print(L"Locating GOP\r\n");
 
@@ -210,34 +208,38 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     uefi_call_wrapper(kernelHandle->Read, 3, kernelHandle, &kernelSize, kernelBuf);
     
 
-    // Tell UEFI to shut down any of it's services. We're on our own now.
+    Print(L"Loaded kernel at address %x\n", kernelBuf);
+
+    // Tell UEFI to shut down any of its services. We're on our own now.
 
     UINTN mapSize = 0, mapKey, descriptorSize;
     EFI_MEMORY_DESCRIPTOR *memoryMap = NULL;
     UINT32 descriptorVersion;
     // Get the required memory pool size for the memory map
     Status = uefi_call_wrapper(BS->GetMemoryMap, 5, &mapSize, memoryMap, NULL, &descriptorSize, NULL);
-    ErrorCheck(Status, EFI_BUFFER_TOO_SMALL);
+    if(Status != EFI_BUFFER_TOO_SMALL) { return Status; }
+
     // Allocating the pool creates at least one new descriptor for the chunk of memory changed to EfiLoaderData
     // Not sure if UEFI firmware must allocate on a memory type boundary. If not, then two descriptors might be created
     mapSize += 2 * descriptorSize;
     // Get a pool of memory to hold the map
     Status = uefi_call_wrapper(BS->AllocatePool, 3, EfiLoaderData, mapSize, (void **)&memoryMap);
-    ErrorCheck(Status, EFI_SUCCESS);
+    if(Status != EFI_SUCCESS) { return Status; }
+
     // Get the actual memory map
     Status = uefi_call_wrapper(BS->GetMemoryMap, 5, &mapSize, memoryMap, &mapKey, &descriptorSize, &descriptorVersion);
-    ErrorCheck(Status, EFI_SUCCESS);
+    if(Status != EFI_SUCCESS) { return Status; }
 
     // And finally exit boot services
     Status = uefi_call_wrapper(BS->ExitBootServices, 2, ImageHandle, mapKey);
-    ErrorCheck(Status, EFI_SUCCESS);
+    if(Status != EFI_SUCCESS) { return Status; }
 
     // Initilize the terminal so printing is possible
-    terminal_initialize((uint64_t*)gop->Mode->FrameBufferBase, gop->Mode->Info->PixelsPerScanLine, gop->Mode->Info->HorizontalResolution, gop->Mode->Info->VerticalResolution);
+    terminal_initialize(gop->Mode->FrameBufferBase, gop->Mode->Info->PixelsPerScanLine, gop->Mode->Info->HorizontalResolution, gop->Mode->Info->VerticalResolution);
 
-    terminal_putc('!', 100, 100, 0xFF);
+    terminal_putc('!', 100, 100, 0xFFFFFFFF);
 
-    terminal_writestring("Loading kernel...\n");
+    //terminal_writestring("Loading kernel...\n");
 
     // Stop here, as there's a few problems and I'd like to figure out where they're occuring.
     while(true) { }
@@ -270,7 +272,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     else
     {
         terminal_writestring("Critical Error: Kernel is not an ELF file! Stopping boot!\n");
-        terminal_writestring("Please restart your machine. (I am too lazy to implement AHCI drivers)\n");
+        terminal_writestring("Please restart your machine. (I am too lazy to implement ACPI drivers)\n");
 
         // Stop here, so the user can power off without causing problems.
         while (true) { }
@@ -292,7 +294,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     
     // Framebuffer and data to do with writing to said framebuffer should still be valid, so this should still work.
     terminal_writestring("Unrecoverable Error Detected! Halting!\n");
-    terminal_writestring("Please restart your machine. (I am too lazy to implement AHCI drivers)\n");
+    terminal_writestring("Please restart your machine. (I am too lazy to implement ACPI drivers)\n");
 
     // Stop here, so the user can power off without causing problems.
     while(true) {}

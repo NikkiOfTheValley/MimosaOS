@@ -3,13 +3,15 @@
 
 #include "font.h"
 
-uint64_t* framebuffer_addr = 0;
-uint32_t pitch = 0;
-int framebuffer_width = 0;
-int framebuffer_height = 0;
+#include <efidef.h>
 
-int cursorX = 0;
-int cursorY = 0;
+EFI_PHYSICAL_ADDRESS framebuffer_addr = 0;
+uint32_t pitch = 0;
+uint32_t framebuffer_width = 0;
+uint32_t framebuffer_height = 0;
+
+int cursorX = 1;
+int cursorY = 1;
 
 int consoleHeight = -1;
 int consoleWidth = -1;
@@ -24,7 +26,7 @@ size_t strlen(const char * _str)
 }
 
 // Initilizes the "terminal" with the given framebuffer address and pitch
-void terminal_initialize(uint64_t* _framebuffer_addr, uint32_t _pitch, int width, int height)
+void terminal_initialize(EFI_PHYSICAL_ADDRESS _framebuffer_addr, uint32_t _pitch, uint32_t width, uint32_t height)
 {
     framebuffer_addr = _framebuffer_addr;
     pitch = _pitch;
@@ -36,28 +38,18 @@ void terminal_initialize(uint64_t* _framebuffer_addr, uint32_t _pitch, int width
 }
 
 // Prints character 'c' at X, Y
-void terminal_putc(char c, int x, int y, int fgcolor)
+void terminal_putc(char c, unsigned int x, unsigned int y, uint32_t fgcolor)
 {
-	uint64_t *dest;
-	uint64_t *dest32;
-	unsigned char *src;
-	int row;
-	uint32_t fgcolor32;
- 
-	fgcolor32 = fgcolor | (fgcolor << 8) | (fgcolor << 16) | (fgcolor << 24);
-	src = &font[0] + c * 16;
-	dest = framebuffer_addr + y * (pitch * 32) + x;
-	for(row = 0; row < 8; row++) {
-		if(*src != 0) {
-			uint32_t mask_low = font_mask[*src][0];
-			uint32_t mask_high = font_mask[*src][1];
-			dest32 = dest;
-			dest32[0] = (dest[0] & ~mask_low) | (fgcolor32 & mask_low);
-			dest32[1] = (dest[1] & ~mask_high) | (fgcolor32 & mask_high);
-		}
-		src++;
-		dest += (pitch * 32);
-	}
+    for (unsigned int Y = 0; Y < 8; Y++)
+    {
+        for (unsigned int X = 0; X < 8; X++)
+        {
+            if ((font[(c * 8) + Y] & (1 << X)))
+            {
+                *((uint32_t*)(framebuffer_addr + 4 * pitch * Y + y + 4 * X + x)) = fgcolor;
+            }
+        }
+    }
 }
 
 // Writes the string `data` of length `length` to the "terminal"
@@ -81,7 +73,7 @@ void terminal_write(const char* data, size_t length)
             break;
         }
 
-        terminal_putc(c, cursorX * 8, cursorY * 8, 0xFF);
+        terminal_putc(c, cursorX * 8, cursorY * 8, 0xFFFFFFFF);
 
         cursorX++;
 

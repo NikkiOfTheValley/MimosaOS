@@ -1,11 +1,12 @@
 #include <stddef.h>
 #include <stdint.h>
+#include "memory.h"
 
 typedef struct framebuffer_info {
-    int base_address;
-    int width;
-    int height;
-    int pitch;
+    physical_address_t base_address;
+    uint32_t width;
+    uint32_t height;
+    uint32_t pitch;
 } framebuffer_info;
 
 framebuffer_info framebuf;
@@ -36,5 +37,6 @@ void draw_byte(uint8_t input, unsigned int X, unsigned int Y)
 int k_main(framebuffer_info framebuffer)
 {
     framebuf = framebuffer;
+
     draw_byte(0b11110000, 200, 200);
 }
