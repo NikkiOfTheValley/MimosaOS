@@ -37,6 +37,17 @@ void terminal_initialize(EFI_PHYSICAL_ADDRESS _framebuffer_addr, uint32_t _pitch
     consoleWidth = framebuffer_width / CHARACTER_SIZE;
 }
 
+void terminal_clear()
+{
+    for (uint32_t Y = 0; Y < framebuffer_height; Y++)
+    {
+        for (uint32_t X = 0; X < framebuffer_width; X++)
+        {
+            *((uint32_t*)(framebuffer_addr + 4 * pitch * Y + 4 * X)) = 0x0;
+        }
+    }
+}
+
 // Prints character 'c' at X, Y
 void terminal_putc(char c, unsigned int x, unsigned int y, uint32_t fgcolor)
 {
