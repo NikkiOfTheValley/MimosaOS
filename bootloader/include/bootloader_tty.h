@@ -33,18 +33,18 @@ void terminal_initialize(EFI_PHYSICAL_ADDRESS _framebuffer_addr, uint32_t _pitch
     framebuffer_width = width;
     framebuffer_height = height;
 
-    consoleHeight = framebuffer_height / 8; // Console height is framebuffer height / 8 because the characters are 8 pixels in size
-    consoleWidth = framebuffer_width / 8; // Console width is the same
+    consoleHeight = framebuffer_height / CHARACTER_SIZE; // Console height is in characters, so divide the framebuffer height by the character size
+    consoleWidth = framebuffer_width / CHARACTER_SIZE;
 }
 
 // Prints character 'c' at X, Y
 void terminal_putc(char c, unsigned int x, unsigned int y, uint32_t fgcolor)
 {
-    for (unsigned int Y = 0; Y < 8; Y++)
+    for (unsigned int Y = 0; Y < CHARACTER_SIZE; Y++)
     {
-        for (unsigned int X = 0; X < 8; X++)
+        for (unsigned int X = 0; X < CHARACTER_SIZE; X++)
         {
-            if ((font[(c * 8) + Y] & (1 << X)))
+            if ((font[(c * CHARACTER_SIZE) + Y] & (1 << X)))
             {
                 *((uint32_t*)(framebuffer_addr + 4 * pitch * Y + y + 4 * X + x)) = fgcolor;
             }
@@ -73,7 +73,7 @@ void terminal_write(const char* data, size_t length)
             break;
         }
 
-        terminal_putc(c, cursorX * 8, cursorY * 8, 0xFFFFFFFF);
+        terminal_putc(c, cursorX * CHARACTER_SIZE, cursorY * CHARACTER_SIZE, 0xFFFFFFFF);
 
         cursorX++;
 

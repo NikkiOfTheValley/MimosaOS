@@ -1,3 +1,5 @@
+#define CHARACTER_SIZE 8
+
 uint8_t font[] = 
 {
     /* NUL */
