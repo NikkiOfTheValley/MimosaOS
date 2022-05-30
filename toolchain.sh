@@ -16,14 +16,14 @@ echo "Downloading Binutils source..."
 
 mkdir binutils-src
 
-wget ./binutils-src/ "https://ftp.gnu.org/gnu/binutils/binutils-2.38.tar.gz"
+wget -P ./binutils-src/ "https://ftp.gnu.org/gnu/binutils/binutils-2.38.tar.gz"
 
 
 echo "Downloading GCC source..."
 
 mkdir gcc-src
 
-wget ./gcc-src/ "https://ftp.gnu.org/gnu/gcc/gcc-12.1.0/gcc-12.1.0.tar.gz"
+wget -P ./gcc-src/ "https://ftp.gnu.org/gnu/gcc/gcc-12.1.0/gcc-12.1.0.tar.gz"
 
 
 echo "Extracting the Binutils source..."
