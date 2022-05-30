@@ -11,6 +11,8 @@ typedef struct framebuffer_info {
 
 framebuffer_info framebuf;
 
+memory_descriptor_s* memMap;
+
 void draw_byte(uint8_t input, unsigned int X, unsigned int Y)
 {
     for (size_t i = 0; i < 8; i++)
@@ -34,9 +36,10 @@ void draw_byte(uint8_t input, unsigned int X, unsigned int Y)
     }
 }
 
-int k_main(framebuffer_info framebuffer)
+int k_main(framebuffer_info framebuffer, memory_descriptor_s* memoryMap)
 {
     framebuf = framebuffer;
-
+    memMap = memoryMap;
+    
     draw_byte(0b11110000, 200, 200);
 }
