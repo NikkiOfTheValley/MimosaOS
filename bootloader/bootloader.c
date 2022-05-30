@@ -92,7 +92,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
     // Some sanity checks
 
-    Status = ST->ConOut->OutputString(ST->ConOut, L"ConOut Sanity Check\r\n");
+    Status = ST->ConOut->OutputString(ST->ConOut, L"ConOut Sanity Check\n");
     if (EFI_ERROR(Status)) {
         // I'm not sure if this would even get displayed, 
         // as at this point it's been proven that ConOut is somehow broken
@@ -101,39 +101,39 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
         return Status;
     }
 
-    Print(L"Sanity check passed\r\n");
+    Print(L"Sanity check passed\n");
 
-    Print(L"KEY_IN Sanity Check\r\n");
+    Print(L"KEY_IN Sanity Check\n");
     WaitForInput();
 
-    Print(L"Sanity check passed\r\n");
+    Print(L"Sanity check passed\n");
 
 
-    Print(L"All sanity checks passed, continuing\r\n\r\n");
+    Print(L"All sanity checks passed, continuing\n\n");
 
 
-    Print(L"Locating GOP\r\n");
+    Print(L"Locating GOP\n");
 
     // Locate the GOP
 	Status = uefi_call_wrapper(BS->LocateProtocol, 3, &gopGuid, NULL, (void**)&gop);
     if(EFI_ERROR(Status)) {
-        Print(L"Could not locate GOP: %r\r\n", Status);
+        Print(L"Could not locate GOP: %r\n", Status);
 		WaitForInput();
 		return Status;
 	}
     else {
-        Print(L"Located GOP, locating framebuffer\r\n");
+        Print(L"Located GOP, locating framebuffer\n");
 	}
 
     // GOP is null, print error message
 	if (!gop) {
-		Print(L"LocateProtocol(GOP, &gop) returned %r but GOP is NULL\r\n", Status);
+		Print(L"LocateProtocol(GOP, &gop) returned %r but GOP is NULL\n", Status);
 		WaitForInput();
 		return EFI_UNSUPPORTED;
 	}
 		
     // Assume framebuffer address is initilized because it is exceedingly unlikely at this point for the GOP to not be valid
-    Print(L"Assuming framebuffer address is initilized\r\n");
+    Print(L"Assuming framebuffer address is initilized\n");
 
 
     // Get the current mode's info
@@ -146,7 +146,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     if (Status == EFI_NOT_STARTED)
         Status = uefi_call_wrapper(gop->SetMode, 2, gop, 0);
     if(EFI_ERROR(Status)) {
-        Print(L"Unable to get native mode\r\n");
+        Print(L"Unable to get native mode\n");
         WaitForInput();
         return Status;
     } else {
@@ -159,7 +159,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
     for (UINTN i = 0; i < numModes; i++) {
         Status = uefi_call_wrapper(gop->QueryMode, 4, gop, i, &SizeOfInfo, &info);
-        Print(L"mode %03d width %d height %d format %x%s\r\n",
+        Print(L"mode %03d width %d height %d format %x%s\n",
             i,
             info->HorizontalResolution,
             info->VerticalResolution,
@@ -170,7 +170,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
 
     // Print framebuffer information
-    Print(L"Framebuffer address %x size %d, width %d height %d pixelsperline %d\r\n",
+    Print(L"Framebuffer address %x size %d, width %d height %d pixelsperline %d\n",
         gop->Mode->FrameBufferBase,
         gop->Mode->FrameBufferSize,
         gop->Mode->Info->HorizontalResolution,
