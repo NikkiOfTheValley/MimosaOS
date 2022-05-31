@@ -13,6 +13,9 @@ Then, CD into the created directory:
 Then, to make the build script executable:
 `chmod u+x build.sh`
 
+Then, to make the toolchain script executable:
+`chmod u+x toolchain.sh`
+
 Then, update your packages:
 `sudo apt update`
 
@@ -24,6 +27,9 @@ Then, install build-essential:
 
 Then, install mtools:
 `sudo apt-get install mtools`
+
+Then, execute the toolchain script (This will take a while!):
+`./toolchain.sh`
 
 Then, execute the build script:
 `./build.sh`
