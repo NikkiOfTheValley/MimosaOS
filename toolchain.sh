@@ -1,5 +1,5 @@
 
-echo "This will likely take a while, so sit back and relax (or just minimize the window)"
+echo "This will likely take a while, (~2.5hrs) so sit back and relax"
 
 
 echo "Installing GCC dependencies..."
@@ -30,7 +30,7 @@ echo "Extracting the Binutils source..."
 
 cd binutils-src
 
-tar -xvzf binutils-2.38.tar.gz
+tar -xzf binutils-2.38.tar.gz
 
 cd ../
 
@@ -39,7 +39,7 @@ echo "Extracting the GCC source..."
 
 cd gcc-src
 
-tar -xvzf gcc-12.1.0.tar.gz
+tar -xzf gcc-12.1.0.tar.gz
 
 cd ../
 
@@ -65,7 +65,6 @@ echo "Building the GCC cross-compiler..."
 
 cd gcc-src
  
-# The $PREFIX/bin dir _must_ be in the PATH. We did that above.
 which -- $TARGET-as || echo $TARGET-as is not in the PATH
  
 mkdir build-gcc
@@ -76,6 +75,11 @@ make all-target-libgcc
 make install-gcc
 make install-target-libgcc
 
-cd ../
+cd ../../
+
+echo "Cleaning up..."
+
+rm -r -f gcc-src
+rm -r -f binutils-src
 
 echo "If there were any errors, please open an issue on the Github page with the error message and a description of what enviorment you're running in."

@@ -10,8 +10,8 @@ uint32_t pitch = 0;
 uint32_t framebuffer_width = 0;
 uint32_t framebuffer_height = 0;
 
-int cursorX = 1;
-int cursorY = 1;
+int cursorX = 20;
+int cursorY = 20;
 
 int consoleHeight = -1;
 int consoleWidth = -1;
@@ -37,14 +37,26 @@ void terminal_initialize(EFI_PHYSICAL_ADDRESS _framebuffer_addr, uint32_t _pitch
     consoleWidth = framebuffer_width / CHARACTER_SIZE;
 }
 
-// Prints character 'c' at X, Y
+void terminal_clear()
+{
+    for (size_t y = 0; y < framebuffer_height; y++)
+    {
+        for (size_t x = 0; x < framebuffer_width; x++)
+        {
+            *((uint32_t*)(framebuffer_addr + 4 * pitch * y + 4 * x)) = 0x0;
+        }
+    }
+}
+
+
+// Prints character 'c' at x, y
 void terminal_putc(char c, unsigned int x, unsigned int y, uint32_t fgcolor)
 {
-    for (unsigned int Y = 0; Y < CHARACTER_SIZE; Y++)
+    for (size_t Y = 0; Y < CHARACTER_SIZE; Y++)
     {
-        for (unsigned int X = 0; X < CHARACTER_SIZE; X++)
+        for (size_t X = 0; X < CHARACTER_SIZE; X++)
         {
-            if ((font[(c * CHARACTER_SIZE) + Y] & (1 << X)))
+            if ((font[(c * CHARACTER_SIZE) + Y] & (0b10000000 >> X)))
             {
                 *((uint32_t*)(framebuffer_addr + 4 * pitch * Y + y + 4 * X + x)) = fgcolor;
             }
@@ -73,7 +85,7 @@ void terminal_write(const char* data, size_t length)
             break;
         }
 
-        terminal_putc(c, cursorX * CHARACTER_SIZE, cursorY * CHARACTER_SIZE, 0xFFFFFFFF);
+        terminal_putc(c, cursorX * (CHARACTER_SIZE * 4), cursorY * (CHARACTER_SIZE * 4), 0xFFFFFFFF);
 
         cursorX++;
 

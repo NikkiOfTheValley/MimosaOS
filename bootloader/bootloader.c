@@ -237,7 +237,9 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     // Initilize the terminal so printing is possible
     terminal_initialize(gop->Mode->FrameBufferBase, gop->Mode->Info->PixelsPerScanLine, gop->Mode->Info->HorizontalResolution, gop->Mode->Info->VerticalResolution);
 
-    terminal_writestring("ABCD1234!\n");
+    terminal_clear();
+    
+    terminal_writestring("Loading kernel...");
 
     // Stop here, as there's a few problems and I'd like to figure out where they're occuring.
     while(true) { }
