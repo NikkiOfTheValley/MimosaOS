@@ -1,3 +1,7 @@
+This is a OS I'm working on for fun and to learn about OS development.
+
+This is *not* intended as a daily driver. (and is currently impossible to use as one)
+
 # Build instructions:
 
 ## Ubuntu 18.XX:
