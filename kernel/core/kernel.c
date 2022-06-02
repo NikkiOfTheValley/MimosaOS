@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include "memory.h"
 
-typedef struct framebuffer_info {
+typedef struct framebuffer_info_s {
     physical_address_t base_address;
     uint32_t width;
     uint32_t height;
@@ -36,7 +36,7 @@ void draw_byte(uint8_t input, unsigned int X, unsigned int Y)
     }
 }
 
-int k_main(framebuffer_info framebuffer, memory_descriptor_s* memoryMap)
+int k_main(framebuffer_info_s framebuffer, memory_descriptor_s* memoryMap)
 {
     framebuf = framebuffer;
     memMap = memoryMap;
