@@ -16,10 +16,12 @@ mcopy -i fat.img BOOTX64.EFI ::/EFI/BOOT
 # Compile the kernel into a ELF binary so it can be loaded and executed by the bootloader
 
 export PATH="$HOME/opt/cross/bin:$PATH"
-export TARGET=i686-elf
+export TARGET=x86_64-elf
 
-$TARGET-gcc -ffreestanding -Ikernel/include -c -o kernel.o kernel/kernel.c
-$TARGET-gcc -nostdlib -nostartfiles -Wl,-e"k_main" -o kernel.elf kernel.o
+$TARGET-gcc -ffreestanding -mcmodel=large -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -Ikernel/include -c kernel/kernel.c -o kernel.o
+# $TARGET-gcc -nostdlib -nostartfiles -Wl,-e"k_main" -o kernel.elf kernel.o
+
+$TARGET-gcc -ffreestanding -T link.ld kernel.o -o kernel.elf -nostdlib -lgcc
 
 # Add the kernel to the FAT image
 mcopy -i fat.img kernel.elf ::/kernel.elf
