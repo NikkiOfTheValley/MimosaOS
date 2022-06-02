@@ -36,6 +36,12 @@ Then, execute the build script:
 
 This will produce a `fat.img` file that you can use your preferred tool to put on a storage device.
 
+# Bug Reports:
+
+Simply open an issue with the label "bug", add a title summarizing the bug,
+and add a description with both your hardware and a full description of the scenario
+to trigger the bug.
+
 # Contribution:
 
 To contribute, you must have your contribution in a pull request,
