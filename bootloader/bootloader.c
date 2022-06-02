@@ -5,6 +5,7 @@
 #include "include/file_handling.h"
 #include "include/bootloader_tty.h"
 
+// Debugging stuff
 #if 0
 extern void dump_stack(void);
 __asm(".globl	dump_stack\n"
@@ -31,9 +32,6 @@ void dump_stack_helper(uint64_t rsp_val)
 }
 #endif
 
-// Checks if the actual result matches the expected result
-#define ErrorCheck(actual, expected) if(actual != expected) return actual
-
 EFI_STATUS Status;
 EFI_INPUT_KEY Key;
 
@@ -42,7 +40,7 @@ EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
 
 
 // Waits for user input from the keyboard
-void WaitForInput() {
+void wait_for_input() {
     Print(L"Press any key to continue\r\n");
 
     Status = ST->ConIn->Reset(ST->ConIn, FALSE);
@@ -77,7 +75,7 @@ void draw_byte(uint8_t input, unsigned int X, unsigned int Y)
     }
 }
 
-typedef struct framebuffer_info {
+typedef struct framebuffer_info_s {
     EFI_PHYSICAL_ADDRESS base_address;
     uint32_t width;
     uint32_t height;
@@ -97,14 +95,14 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
         // I'm not sure if this would even get displayed, 
         // as at this point it's been proven that ConOut is somehow broken
         Print(L"Sanity check failed\r\n"); 
-        WaitForInput();
+        wait_for_input();
         return Status;
     }
 
     Print(L"Sanity check passed\n");
 
     Print(L"KEY_IN Sanity Check\n");
-    WaitForInput();
+    wait_for_input();
 
     Print(L"Sanity check passed\n");
 
@@ -118,7 +116,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	Status = uefi_call_wrapper(BS->LocateProtocol, 3, &gopGuid, NULL, (void**)&gop);
     if(EFI_ERROR(Status)) {
         Print(L"Could not locate GOP: %r\n", Status);
-		WaitForInput();
+		wait_for_input();
 		return Status;
 	}
     else {
@@ -128,12 +126,12 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     // GOP is null, print error message
 	if (!gop) {
 		Print(L"LocateProtocol(GOP, &gop) returned %r but GOP is NULL\n", Status);
-		WaitForInput();
+		wait_for_input();
 		return EFI_UNSUPPORTED;
 	}
-		
-    // Assume framebuffer address is initilized because it is exceedingly unlikely at this point for the GOP to not be valid
-    Print(L"Assuming framebuffer address is initilized\n");
+	
+    // Assume framebuffer information is initilized because it is exceedingly unlikely at this point for the GOP to not be valid
+    Print(L"Assuming framebuffer information is initilized\n");
 
 
     // Get the current mode's info
@@ -147,7 +145,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
         Status = uefi_call_wrapper(gop->SetMode, 2, gop, 0);
     if(EFI_ERROR(Status)) {
         Print(L"Unable to get native mode\n");
-        WaitForInput();
+        wait_for_input();
         return Status;
     } else {
         nativeMode = gop->Mode->Mode;
@@ -234,6 +232,8 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     Status = uefi_call_wrapper(BS->ExitBootServices, 2, ImageHandle, mapKey);
     if(Status != EFI_SUCCESS) { return Status; }
 
+    Status = uefi_call_wrapper(ST->SetVirtualAddressMap, )
+
     // Initilize the terminal so printing is possible
     terminal_initialize(gop->Mode->FrameBufferBase, gop->Mode->Info->PixelsPerScanLine, gop->Mode->Info->HorizontalResolution, gop->Mode->Info->VerticalResolution);
 
@@ -272,7 +272,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     else
     {
         terminal_writestring("Critical Error: Kernel is not an ELF file! Stopping boot!\n");
-        terminal_writestring("Please restart your machine. (I am too lazy to implement ACPI drivers)\n");
+        terminal_writestring("Please power off your machine. (I am too lazy to implement ACPI drivers)\n");
 
         // Stop here, so the user can power off without causing problems.
         while (true) { }
@@ -281,14 +281,14 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
     // Initilize a struct with the required framebuffer info to pass to the kernel, so drawing is still possible
 
-    framebuffer_info framebuf;
+    framebuffer_info_s framebuf;
     framebuf.base_address = gop->Mode->FrameBufferBase;
     framebuf.width = gop->Mode->Info->HorizontalResolution;
     framebuf.height = gop->Mode->Info->VerticalResolution;
     framebuf.pitch = gop->Mode->Info->PixelsPerScanLine;
 
     // Jump to the kernel address (not actually kernel address, haven't gotten a ELF loader working yet. This is a placeholder.)
-    typedef int k_main(framebuffer_info framebuffer);
+    typedef int k_main(framebuffer_info framebuffer, EFI_MEMORY_DESCRIPTOR* memoryMap);
     k_main* k = (k_main*)0xdeadbeef;
     k(framebuf);
     
@@ -299,6 +299,5 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     // Stop here, so the user can power off without causing problems.
     while(true) {}
 
-    // Kernel shouldn't ever exit, but GCC complains if you leave out the return statement
     return Status;
 }
