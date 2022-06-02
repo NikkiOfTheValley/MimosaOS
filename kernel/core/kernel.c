@@ -9,7 +9,7 @@ typedef struct framebuffer_info_s {
     uint32_t pitch;
 } framebuffer_info;
 
-framebuffer_info framebuf;
+framebuffer_info_s framebuf;
 
 memory_descriptor_s* memMap;
 
