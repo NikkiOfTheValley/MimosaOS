@@ -232,14 +232,12 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     Status = uefi_call_wrapper(BS->ExitBootServices, 2, ImageHandle, mapKey);
     if(Status != EFI_SUCCESS) { return Status; }
 
-    Status = uefi_call_wrapper(ST->SetVirtualAddressMap, )
-
     // Initilize the terminal so printing is possible
     terminal_initialize(gop->Mode->FrameBufferBase, gop->Mode->Info->PixelsPerScanLine, gop->Mode->Info->HorizontalResolution, gop->Mode->Info->VerticalResolution);
 
     terminal_clear();
     
-    terminal_writestring("Loading kernel...");
+    terminal_writestring("Loading kernel...\n");
 
     // Stop here, as there's a few problems and I'd like to figure out where they're occuring.
     while(true) { }
@@ -271,12 +269,67 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     }
     else
     {
-        terminal_writestring("Critical Error: Kernel is not an ELF file! Stopping boot!\n");
+        terminal_writestring("Fatal Error: Kernel is not an ELF file! Stopping boot!\n");
         terminal_writestring("Please power off your machine. (I am too lazy to implement ACPI drivers)\n");
 
         // Stop here, so the user can power off without causing problems.
         while (true) { }
     }
+
+    // 1 = 32 bit, 2 = 64 bit
+    uint8_t header_32_or_64 = kernelBuf[4];
+
+    // The kernel must be 64 bit
+    if (header_32_or_64 != 2)
+    {
+        terminal_writestring("Fatal Error: Kernel is not a 64 bit executable! Stopping boot!\n");
+        terminal_writestring("Please power off your machine. (I am too lazy to implement ACPI drivers)\n");
+
+        // Stop here, so the user can power off without causing problems.
+        while (true) { }
+    }
+
+    // 1 = relocatable, 2 = executable, 3 = shared, 4 = core
+    uint16_t header_elf_type = 0;
+
+    header_elf_type |= (uint16_t)kernelBuf[16] << 8;
+    header_elf_type |= (uint16_t)kernelBuf[17];
+
+    // The kernel must be executable
+    if (header_elf_type != 2)
+    {
+        terminal_writestring("Fatal Error: Kernel is not executable! Stopping boot!\n");
+        terminal_writestring("Please power off your machine. (I am too lazy to implement ACPI drivers)\n");
+
+        // Stop here, so the user can power off without causing problems.
+        while (true) { }
+    }
+
+    // 0x3E means X86-64
+    uint16_t header_instruction_set = 0;
+
+    header_instruction_set |= (uint16_t)kernelBuf[18] << 8;
+    header_instruction_set |= (uint16_t)kernelBuf[19];
+
+    // The kernel must be x86-64
+    if (header_instruction_set != (uint16_t)0x3E)
+    {
+        terminal_writestring("Fatal Error: Kernel is not x86-64! Stopping boot!\n");
+        terminal_writestring("Please power off your machine. (I am too lazy to implement ACPI drivers)\n");
+
+        // Stop here, so the user can power off without causing problems.
+        while (true) { }
+    }
+
+    
+
+
+
+
+
+
+
+
 
 
     // Initilize a struct with the required framebuffer info to pass to the kernel, so drawing is still possible
@@ -288,9 +341,9 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     framebuf.pitch = gop->Mode->Info->PixelsPerScanLine;
 
     // Jump to the kernel address (not actually kernel address, haven't gotten a ELF loader working yet. This is a placeholder.)
-    typedef int k_main(framebuffer_info framebuffer, EFI_MEMORY_DESCRIPTOR* memoryMap);
+    typedef int k_main(framebuffer_info framebuffer, EFI_MEMORY_DESCRIPTOR* memory_map);
     k_main* k = (k_main*)0xdeadbeef;
-    k(framebuf);
+    k(framebuf, memoryMap);
     
     // Framebuffer and data to do with writing to said framebuffer should still be valid, so this should still work.
     terminal_writestring("Unrecoverable Error Detected! Halting!\n");

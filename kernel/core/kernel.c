@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "memory.h"
+#include "uefi.h"
 
 typedef struct framebuffer_info_s {
     physical_address_t base_address;
@@ -11,7 +12,13 @@ typedef struct framebuffer_info_s {
 
 framebuffer_info_s framebuf;
 
+// Memory descriptor from UEFI
 memory_descriptor_s* memMap;
+
+// Memory map details
+uintn_t mapSize = 0;
+uintn_t mapKey = 0;
+uintn_t descriptorSize = 0;
 
 void draw_byte(uint8_t input, unsigned int X, unsigned int Y)
 {
@@ -36,10 +43,10 @@ void draw_byte(uint8_t input, unsigned int X, unsigned int Y)
     }
 }
 
-int k_main(framebuffer_info_s framebuffer, memory_descriptor_s* memoryMap)
+int k_main(framebuffer_info_s framebuffer, memory_descriptor_s* memory_map)
 {
     framebuf = framebuffer;
-    memMap = memoryMap;
+    memMap = memory_map;
     
     draw_byte(0b11110000, 200, 200);
 }
