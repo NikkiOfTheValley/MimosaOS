@@ -6,7 +6,7 @@
 #include "include/bootloader_tty.h"
 
 // Debugging stuff
-#if 0
+#ifdef DEBUG_BL
 extern void dump_stack(void);
 __asm(".globl	dump_stack\n"
 	"dump_stack:\n"
@@ -249,16 +249,20 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     header_magic |= (uint32_t)kernelBuf[3];
 
     // Debug info
+    #ifdef DEBUG_BL
     for (size_t y = 0; y < gop->Mode->Info->VerticalResolution - 5; y++)
     {
-        // draw_byte(kernelBuf[y], 0, y);
+        draw_byte(kernelBuf[y], 0, y);
     }
+    #endif
 
     // More debug info
+    #ifdef DEBUG_BL
     draw_byte((uint8_t)(header_magic), 200, 200);
     draw_byte((uint8_t)(header_magic >> 8), 216, 200);
     draw_byte((uint8_t)(header_magic >> 16), 232, 200);
     draw_byte((uint8_t)(header_magic >> 24), 248, 200);
+    #endif
 
     //0x6232A2FE
     if (header_magic == 0x7F454C46) // If header_magic == .ELF
