@@ -75,12 +75,12 @@ void draw_byte(uint8_t input, unsigned int X, unsigned int Y)
     }
 }
 
-typedef struct framebuffer_info_s {
+typedef struct {
     EFI_PHYSICAL_ADDRESS base_address;
     uint32_t width;
     uint32_t height;
     uint32_t pitch;
-} framebuffer_info;
+} framebuffer_info_s;
 
 
 EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
@@ -341,7 +341,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     framebuf.pitch = gop->Mode->Info->PixelsPerScanLine;
 
     // Jump to the kernel address (not actually kernel address, haven't gotten a ELF loader working yet. This is a placeholder.)
-    typedef int k_main(framebuffer_info framebuffer, EFI_MEMORY_DESCRIPTOR* memory_map);
+    typedef int k_main(framebuffer_info_s framebuffer, EFI_MEMORY_DESCRIPTOR* memory_map);
     k_main* k = (k_main*)0xdeadbeef;
     k(framebuf, memoryMap);
     
