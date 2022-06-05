@@ -265,11 +265,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     #endif
 
     //0x6232A2FE
-    if (header_magic == 0x7F454C46) // If header_magic == .ELF
-    {
-        draw_byte((uint8_t)0b11110000, 300, 300);
-    }
-    else
+    if (header_magic != 0x7F454C46) // If header_magic == .ELF
     {
         terminal_writestring("Fatal Error: Kernel is not an ELF file! Stopping boot!\n");
         terminal_writestring("Please power off your machine. (I am too lazy to implement ACPI drivers)\n");
