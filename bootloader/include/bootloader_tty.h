@@ -52,14 +52,13 @@ void terminal_clear()
 // Prints character 'c' at x, y
 void terminal_putc(char c, unsigned int x, unsigned int y, uint32_t fgcolor)
 {
-    // Hack so the y coordinate of the character works properly
-    for (size_t Y = y; Y < CHARACTER_SIZE + y; Y++)
+    for (size_t Y = 0; Y < CHARACTER_SIZE; Y++)
     {
         for (size_t X = 0; X < CHARACTER_SIZE; X++)
         {
             if ((font[(c * CHARACTER_SIZE) + Y] & (0b10000000 >> X)))
             {
-                *((uint32_t*)(framebuffer_addr + 4 * pitch * Y + 4 * X + x)) = fgcolor;
+                *((uint32_t*)(framebuffer_addr + 4 * pitch * Y + y + 4 * X + x)) = fgcolor;
             }
         }
     }
