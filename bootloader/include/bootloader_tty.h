@@ -10,8 +10,8 @@ uint32_t pitch = 0;
 uint32_t framebuffer_width = 0;
 uint32_t framebuffer_height = 0;
 
-int cursorX = 20;
-int cursorY = 20;
+int cursorX = 1;
+int cursorY = 1;
 
 int consoleHeight = -1;
 int consoleWidth = -1;
@@ -58,7 +58,7 @@ void terminal_putc(char c, unsigned int x, unsigned int y, uint32_t fgcolor)
         {
             if ((font[(c * CHARACTER_SIZE) + Y] & (0b10000000 >> X)))
             {
-                *((uint32_t*)(framebuffer_addr + 4 * pitch * Y + y + 4 * X + x)) = fgcolor;
+                *((uint32_t*)(framebuffer_addr + 4 * pitch * (Y + y) + 4 * (X + x))) = fgcolor;
             }
         }
     }
@@ -82,16 +82,17 @@ void terminal_write(const char* data, size_t length)
         if (c == '\n')
         {
             cursorY++;
+            cursorX = 1;
             break;
         }
 
-        terminal_putc(c, cursorX * (CHARACTER_SIZE * 4), cursorY * (CHARACTER_SIZE * 4), 0xFFFFFFFF);
+        terminal_putc(c, cursorX * (CHARACTER_SIZE), cursorY * (CHARACTER_SIZE), 0xFFFFFFFF);
 
         cursorX++;
 
         if (cursorX > consoleWidth)
         {
-            cursorX = 0;
+            cursorX = 1;
             cursorY++;
         }
     }

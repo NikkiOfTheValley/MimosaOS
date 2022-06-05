@@ -239,9 +239,6 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     
     terminal_writestring("Loading kernel...\n");
 
-    // Stop here, as there's a few problems and I'd like to figure out where they're occuring.
-    while(true) { }
-
     // Parse the kernel ELF file
     
     uint32_t header_magic = 0;
@@ -254,7 +251,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     // Debug info
     for (size_t y = 0; y < gop->Mode->Info->VerticalResolution - 5; y++)
     {
-        draw_byte(kernelBuf[y], 0, y);
+        // draw_byte(kernelBuf[y], 0, y);
     }
 
     // More debug info
@@ -263,7 +260,8 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     draw_byte((uint8_t)(header_magic >> 16), 232, 200);
     draw_byte((uint8_t)(header_magic >> 24), 248, 200);
 
-    if (header_magic == 0x6232A2FE) // If header_magic == .ELF
+    //0x6232A2FE
+    if (header_magic == 0x7F454C46) // If header_magic == .ELF
     {
         draw_byte((uint8_t)0b11110000, 300, 300);
     }
@@ -292,8 +290,8 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     // 1 = relocatable, 2 = executable, 3 = shared, 4 = core
     uint16_t header_elf_type = 0;
 
-    header_elf_type |= (uint16_t)kernelBuf[16] << 8;
-    header_elf_type |= (uint16_t)kernelBuf[17];
+    header_elf_type |= (uint16_t)kernelBuf[16];
+    header_elf_type |= (uint16_t)kernelBuf[17] << 8;
 
     // The kernel must be executable
     if (header_elf_type != 2)
@@ -308,8 +306,8 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     // 0x3E means X86-64
     uint16_t header_instruction_set = 0;
 
-    header_instruction_set |= (uint16_t)kernelBuf[18] << 8;
-    header_instruction_set |= (uint16_t)kernelBuf[19];
+    header_instruction_set |= (uint16_t)kernelBuf[18];
+    header_instruction_set |= (uint16_t)kernelBuf[19] << 8;
 
     // The kernel must be x86-64
     if (header_instruction_set != (uint16_t)0x3E)
