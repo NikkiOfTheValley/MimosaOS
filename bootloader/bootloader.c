@@ -201,12 +201,53 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     // Read from the kernel file and load it into memory
 
     uint64_t kernelSize = FileSize(kernelHandle);
-    uint8_t *kernelBuf = AllocatePool(kernelSize);
+
+    #define PAGE_SIZE 4096
+    #define PRE_ALLOC 5
+
+    // Allocate (kernelSize / PAGE_SIZE) + PRE_ALLOC pages for the kernel. UEFI initilizes the VAS as identity mapped,
+    // so I can't use AllocatePool, as the kernel address will be inconsistent otherwise.
+
+    UINTN numPages = (kernelSize / PAGE_SIZE) + PRE_ALLOC;
+
+    void* kernelAddress = (void)0x1000;
+    Status = uefi_call_wrapper(BS->AllocatePages, 4, AllocateAddress, EfiLoaderCode, numPages, (EFI_PHYSICAL_ADDRESS*)&kernelAddress);
+    if (EFI_ERROR(Status) || kernelAddress == NULL)
+    {
+        Print(L"Could not allocate pages for the kernel! Stopping boot!\n");
+        Print(L"Failure Reason: ");
+
+        if (Status == EFI_OUT_OF_RESOURCES)
+        {
+            Print(L"EFI_OUT_OF_RESOURCES\n");
+        }
+        else if (Status == EFI_INVALID_PARAMETER)
+        {
+            Print(L"EFI_INVALID_PARAMETER\n");
+        }
+        else if (Status == EFI_NOT_FOUND)
+        {
+            Print(L"EFI_NOT_FOUND\n");
+        }
+        else if (Status == EFI_SUCCESS && kernelAddress == NULL)
+        {
+            Print(L"UNKNOWN_K_PTR_NULL\n");
+        }
+
+        Print(L"Please power off your machine. (I am too lazy to implement ACPI drivers)\n");
+
+        while (true) { }
+
+    }
+
+    uint8_t *kernelBuf = kernelAddress;
 
     uefi_call_wrapper(kernelHandle->Read, 3, kernelHandle, &kernelSize, kernelBuf);
     
 
     Print(L"Loaded kernel at address %x\n", kernelBuf);
+
+    while (true) { }
 
     // Tell UEFI to shut down any of its services. We're on our own now.
 
@@ -264,8 +305,8 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     draw_byte((uint8_t)(header_magic >> 24), 248, 200);
     #endif
 
-    //0x6232A2FE
-    if (header_magic != 0x7F454C46) // If header_magic == .ELF
+    // If header_magic == .ELF
+    if (header_magic != 0x7F454C46) 
     {
         terminal_writestring("Fatal Error: Kernel is not an ELF file! Stopping boot!\n");
         terminal_writestring("Please power off your machine. (I am too lazy to implement ACPI drivers)\n");
