@@ -1,6 +1,5 @@
 High Priority:
 
-    Fix font rendering
     Get the ELF parser working
     Get the kernel loaded
 
