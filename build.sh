@@ -7,8 +7,8 @@ cd ../../
 mv bootloader/bootloader.efi BOOTX64.EFI
 
 # Create a FAT image containing the correct directories and files for a valid UEFI boot partition
-dd if=/dev/zero of=fat.img bs=1k count=1440
-mformat -i fat.img -f 1440 ::
+dd if=/dev/zero of=fat.img bs=1k count=2880
+mformat -i fat.img -f 2880 ::
 mmd -i fat.img ::/EFI
 mmd -i fat.img ::/EFI/BOOT
 mcopy -i fat.img BOOTX64.EFI ::/EFI/BOOT
@@ -18,7 +18,7 @@ mcopy -i fat.img BOOTX64.EFI ::/EFI/BOOT
 export PATH="$HOME/opt/cross/bin:$PATH"
 export TARGET=x86_64-elf
 
-$TARGET-gcc -ffreestanding -mcmodel=large -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -Ikernel/include -c kernel/kernel.c -o kernel.o
+$TARGET-gcc -ffreestanding -mcmodel=large -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -Ikernel/core/include -c kernel/core/kernel.c -o kernel.o
 # $TARGET-gcc -nostdlib -nostartfiles -Wl,-e"k_main" -o kernel.elf kernel.o
 
 $TARGET-gcc -ffreestanding -T link.ld kernel.o -o kernel.elf -nostdlib -lgcc

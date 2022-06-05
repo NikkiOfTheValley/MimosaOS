@@ -3,12 +3,12 @@
 #include "memory.h"
 #include "uefi.h"
 
-typedef struct framebuffer_info_s {
+typedef struct {
     physical_address_t base_address;
     uint32_t width;
     uint32_t height;
     uint32_t pitch;
-} framebuffer_info;
+} framebuffer_info_s;
 
 framebuffer_info_s framebuf;
 
