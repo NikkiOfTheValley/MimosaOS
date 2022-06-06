@@ -203,14 +203,17 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     uint64_t kernelSize = FileSize(kernelHandle);
 
     #define PAGE_SIZE 4096
-    #define PRE_ALLOC 5
+    #define PRE_ALLOC 100
 
     // Allocate (kernelSize / PAGE_SIZE) + PRE_ALLOC pages for the kernel. UEFI initilizes the VAS as identity mapped,
     // so I can't use AllocatePool, as the kernel address will be inconsistent otherwise.
 
-    UINTN numPages = (kernelSize / PAGE_SIZE) + PRE_ALLOC;
+    UINTN numPages = (kernelSize / (PAGE_SIZE * 8)) + PRE_ALLOC;
 
-    void* kernelAddress = (void)0x1000;
+    Print(L"Pages to allocate: %d", numPages);
+
+    void* kernelAddress = (void*)0x10000;
+
     Status = uefi_call_wrapper(BS->AllocatePages, 4, AllocateAddress, EfiLoaderCode, numPages, (EFI_PHYSICAL_ADDRESS*)&kernelAddress);
     if (EFI_ERROR(Status) || kernelAddress == NULL)
     {
@@ -247,14 +250,14 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
     Print(L"Loaded kernel at address %x\n", kernelBuf);
 
-    while (true) { }
+    // while (true) { }
 
     // Tell UEFI to shut down any of its services. We're on our own now.
 
     UINTN mapSize = 0, mapKey, descriptorSize;
     EFI_MEMORY_DESCRIPTOR *memoryMap = NULL;
     UINT32 descriptorVersion;
-    // Get the required memory pool size for the memory map
+    // Get the required memory pool size for the memory map 
     Status = uefi_call_wrapper(BS->GetMemoryMap, 5, &mapSize, memoryMap, NULL, &descriptorSize, NULL);
     if(Status != EFI_BUFFER_TOO_SMALL) { return Status; }
 
@@ -360,15 +363,19 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
         while (true) { }
     }
 
-    
+    // Quick hack so the kernel can actually execute. I don't know what could go wrong from this,
+    // but I know it will mess up something, I just don't know what yet.
 
+    uint64_t prog_entry = 0;
 
-
-
-
-
-
-
+    prog_entry |= (uint64_t)kernelBuf[24];
+    prog_entry |= (uint64_t)kernelBuf[25] << 8;
+    prog_entry |= (uint64_t)kernelBuf[26] << 16;
+    prog_entry |= (uint64_t)kernelBuf[27] << 24;
+    prog_entry |= (uint64_t)kernelBuf[28] << 32;
+    prog_entry |= (uint64_t)kernelBuf[29] << 40;
+    prog_entry |= (uint64_t)kernelBuf[30] << 48;
+    prog_entry |= (uint64_t)kernelBuf[31] << 56;
 
 
     // Initilize a struct with the required framebuffer info to pass to the kernel, so drawing is still possible
@@ -379,9 +386,9 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     framebuf.height = gop->Mode->Info->VerticalResolution;
     framebuf.pitch = gop->Mode->Info->PixelsPerScanLine;
 
-    // Jump to the kernel address (not actually kernel address, haven't gotten a ELF loader working yet. This is a placeholder.)
+    // Jump to the kernel address
     typedef int k_main(framebuffer_info_s framebuffer, EFI_MEMORY_DESCRIPTOR* memory_map);
-    k_main* k = (k_main*)0xdeadbeef;
+    k_main* k = (k_main*)kernelAddress + prog_entry;
     k(framebuf, memoryMap);
     
     // Framebuffer and data to do with writing to said framebuffer should still be valid, so this should still work.

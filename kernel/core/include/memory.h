@@ -1,3 +1,6 @@
+#ifndef MEMORY_H
+#define MEMORY_H
+
 // Memory header. Includes memory types and will eventually include memory handling functions.
 
 typedef uint64_t physical_address_t;
@@ -11,3 +14,4 @@ typedef struct {
     uint64_t                      NumberOfPages;  // Field size is 64 bits
     uint64_t                      Attribute;      // Field size is 64 bits
 } memory_descriptor_s;
+#endif
