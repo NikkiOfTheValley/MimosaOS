@@ -1,5 +1,5 @@
 
-echo "This will likely take a while, (~2.5hrs) so sit back and relax"
+echo "This will likely take a while, (~1.5hrs) so sit back and relax"
 
 
 echo "Installing GCC dependencies..."
@@ -76,6 +76,10 @@ make install-gcc
 make install-target-libgcc
 
 cd ../../
+
+echo "Finished kernel toolchain, installing Clang for UEFI bootloader"
+
+sudo apt install clang
 
 echo "Cleaning up..."
 

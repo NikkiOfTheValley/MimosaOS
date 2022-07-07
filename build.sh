@@ -19,7 +19,6 @@ export PATH="$HOME/opt/cross/bin:$PATH"
 export TARGET=x86_64-elf
 
 $TARGET-gcc -ffreestanding -mcmodel=large -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -Ikernel/core/include -c kernel/core/kernel.c -o kernel.o
-# $TARGET-gcc -nostdlib -nostartfiles -Wl,-e"k_main" -o kernel.elf kernel.o
 
 $TARGET-gcc -ffreestanding -T link.ld kernel.o -o kernel.elf -nostdlib -lgcc
 

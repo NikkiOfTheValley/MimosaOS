@@ -208,13 +208,13 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     // Allocate (kernelSize / PAGE_SIZE) + PRE_ALLOC pages for the kernel. UEFI initilizes the VAS as identity mapped,
     // so I can't use AllocatePool, as the kernel address will be inconsistent otherwise.
 
-    UINTN numPages = (kernelSize / (PAGE_SIZE * 8)) + PRE_ALLOC;
+    UINTN numPages = (kernelSize / (PAGE_SIZE)) + PRE_ALLOC;
 
     Print(L"Pages to allocate: %d", numPages);
 
     void* kernelAddress = (void*)0x10000;
 
-    Status = uefi_call_wrapper(BS->AllocatePages, 4, AllocateAddress, EfiLoaderCode, numPages, (EFI_PHYSICAL_ADDRESS*)&kernelAddress);
+    Status = uefi_call_wrapper(BS->AllocatePages, 4, AllocateAnyPages, EfiLoaderCode, numPages, (EFI_PHYSICAL_ADDRESS*)&kernelAddress);
     if (EFI_ERROR(Status) || kernelAddress == NULL)
     {
         Print(L"Could not allocate pages for the kernel! Stopping boot!\n");
