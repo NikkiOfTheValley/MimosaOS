@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "include/file_handling.h"
 #include "include/bootloader_tty.h"
+#include "include/paging.h"
 
 // Debugging stuff
 #ifdef DEBUG_BL
@@ -200,6 +201,10 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     
     // Read from the kernel file and load it into memory
 
+    //initPageDir();
+    //initPage();
+    //loadPageDir(pageDirectory);
+
     uint64_t kernelSize = FileSize(kernelHandle);
 
     #define PAGE_SIZE 4096
@@ -249,8 +254,6 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     
 
     Print(L"Loaded kernel at address %x\n", kernelBuf);
-
-    // while (true) { }
 
     // Tell UEFI to shut down any of its services. We're on our own now.
 

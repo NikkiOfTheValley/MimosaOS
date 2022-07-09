@@ -77,12 +77,8 @@ structure described in the following ASCII diagram:
         "kernel.c"             "include"                    "[DRIVER_NAME]"                                          "include"
                                    |                               |                                                     |
                     Same structure as the bootloader           .c and .h files for the driver go here      This is a global include folder for all drivers
-                                                                    
-
-
-
 ```
-
+  
 ### Code Style
 
 Variable Declarations:
