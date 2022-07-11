@@ -1,6 +1,8 @@
 High Priority:
 
-    Fix a EFI_NOT_FOUND error while allocating pages for the kernel
+    Fix a illegal instruction error in the serial
+    console in QEMU when executing kernel TTY functions
+    
     Get the ELF parser working
     Get the kernel loaded
 
