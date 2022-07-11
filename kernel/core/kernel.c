@@ -4,6 +4,7 @@
 #include "memory.h"
 #include "uefi.h"
 #include "framebuffer.h"
+#include "tty.h"
 
 framebuffer_info_s framebuf;
 
@@ -51,6 +52,10 @@ int k_main(framebuffer_info_s framebuffer, memory_descriptor_s* memory_map)
     *((uint32_t*)(framebuf.base_address + 4 * framebuf.pitch * 22 + 4 * 21)) = 0xFFFFFFFF;
     *((uint32_t*)(framebuf.base_address + 4 * framebuf.pitch * 23 + 4 * 22)) = 0xFFFFFFFF;
     *((uint32_t*)(framebuf.base_address + 4 * framebuf.pitch * 24 + 4 * 23)) = 0xFFFFFFFF;
+
+    terminal_initialize(framebuf.base_address, framebuf.pitch, framebuf.width, framebuf.height);
+
+    terminal_writestring("Hello (kernel) world!");
 
     while(true) {}
 }
