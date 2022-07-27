@@ -80,6 +80,9 @@ cd ../../
 echo "Finished kernel toolchain, installing Clang for UEFI bootloader"
 
 sudo apt install clang
+sudo apt install lldb
+sudo apt install lld
+
 
 echo "Cleaning up..."
 

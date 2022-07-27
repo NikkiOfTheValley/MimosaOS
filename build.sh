@@ -3,6 +3,10 @@ cd gnu-efi/apps
 make
 cd ../../
 
+#cd bootloader
+#clang bootloader.c --target=x86_64-windows -I"../gnu-efi/inc" -ffreestanding -nostdlib -mno-stack-arg-probe -mgeneral-regs-only -fuse-ld=lld -Wl,-entry:efi_main -Wl,-subsystem:efi_application -Wl,-largeaddressaware
+#cd ../
+
 # Rename the resulting EFI file to the correct name for UEFI to see it
 mv bootloader/bootloader.efi BOOTX64.EFI
 
