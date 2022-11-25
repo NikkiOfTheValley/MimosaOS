@@ -10,8 +10,8 @@
 make
 
 # Create a FAT image containing the correct directories and files for a valid UEFI boot partition
-dd if=/dev/zero of=fat.img bs=1k count=4880
-mformat -i fat.img -f 2880 ::
+dd if=/dev/zero of=fat.img bs=1k count=20000
+mformat -i fat.img ::
 mmd -i fat.img ::/EFI
 mmd -i fat.img ::/EFI/BOOT
 mcopy -i fat.img BOOTX64.EFI ::/EFI/BOOT
