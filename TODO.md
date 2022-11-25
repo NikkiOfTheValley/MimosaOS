@@ -1,10 +1,11 @@
 High Priority:
+    Migrate bootloader toolchain from gnu-efi headers
+    & GCC to EDK II headers & Clang
 
     Fix a illegal instruction error in the serial
     console in QEMU when executing kernel TTY functions
     
-    Get the ELF parser working
-    Get the kernel loaded
+    Get the ELF parser fully working
 
 Medium Priority:
 

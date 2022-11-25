@@ -10,7 +10,7 @@ You must follow the given style guide:
 ### Folder Structure (Bootloader)
 
 The bootloader must be contained within 1 top level directory named "bootloader",
-with a "bootloader.c" in said directory. All headers must be in a 2nd level directory named "includes",
+with a "bootloader.c" in said directory. All header must be in a 2nd level directory named "includes",
 with no other folder structure strictly required within "includes", although you can add directories
 for organization purposes.
 

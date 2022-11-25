@@ -9,10 +9,10 @@ This is *not* intended as a daily driver. (and is currently impossible to use as
 This is for a clean install with no build software or anything.
 
 First, clone this repository:
-`git clone https://github.com/ThatCodingGuy86/UnnamedOS-V2`
+`git clone https://github.com/ThatCodingGuy86/MimosaOS`
 
 Then, CD into the created directory:
-`cd UnnamedOS-V2`
+`cd MimosaOS`
 
 Then, to make the build script executable:
 `chmod u+x build.sh`
