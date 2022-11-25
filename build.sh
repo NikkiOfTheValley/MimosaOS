@@ -18,10 +18,10 @@ mcopy -i fat.img BOOTX64.EFI ::/EFI/BOOT
 
 # Compile the kernel into a ELF binary so it can be loaded and executed by the bootloader
 
-cargo build
+cargo build --release
 
 # Add the kernel to the FAT image
-mcopy -i fat.img target/debug/kernel ::/kernel.elf
+mcopy -i fat.img target/x86_64-unknown-none/release/kernel ::/kernel.elf
 
 # Clean up files
 rm BOOTX64.EFI
