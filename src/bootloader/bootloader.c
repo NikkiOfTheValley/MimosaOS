@@ -388,6 +388,8 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     framebuf.height = gop->Mode->Info->VerticalResolution;
     framebuf.pitch = gop->Mode->Info->PixelsPerScanLine;
 
+    terminal_writestring("Jumping to kernel address\n");
+
     // Jump to the kernel address
     typedef int k_main(framebuffer_info_s framebuffer, EFI_MEMORY_DESCRIPTOR* memory_map);
     k_main* k = (k_main*)kernelAddress + prog_entry;
@@ -400,5 +402,6 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     // Stop here, so the user can power off without causing problems.
     while(true) {}
 
+    // This return statement is required, otherwise Clang starts complaining
     return Status;
 }
