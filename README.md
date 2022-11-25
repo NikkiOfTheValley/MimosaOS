@@ -2,6 +2,10 @@ This is a OS I'm working on for fun and to learn about OS development.
 
 This is *not* intended as a daily driver. (and is currently impossible to use as one)
 
+The bootloader is written in C and uses parts of the GNU-EFI UEFI toolchain, with Clang.
+The kernel is written in Rust loosely following the "Writing an OS in Rust" (https://os.phil-opp.com/)
+tutorial as a starting point. The original C "kernel" can still be found in the src/kernel/core directory.
+
 # Build instructions:
 
 ## Ubuntu 18.XX:
