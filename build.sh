@@ -21,7 +21,7 @@ mcopy -i fat.img BOOTX64.EFI ::/EFI/BOOT
 cargo build --release
 
 # Add the kernel to the FAT image
-mcopy -i fat.img target/x86_64-unknown-none/release/kernel ::/kernel.elf
+mcopy -i fat.img target/x86_64-target/release/kernel ::/kernel.elf
 
 # Clean up files
 rm BOOTX64.EFI
