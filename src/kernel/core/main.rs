@@ -26,6 +26,15 @@ pub extern "C" fn _start(framebuffer_info: FramebufferInfo, memory_map: *const M
     let framebuffer = framebuffer_info.base_address as *mut u32;
     let pitch = framebuffer_info.pitch;
 
+    // Clear screen
+    for y in 0..framebuffer_info.height {
+        for x in 0..framebuffer_info.width {
+            unsafe {
+                *framebuffer.offset((4 * pitch * y + 4 * x) as isize) = 0x00000000;
+            }
+        }
+    }
+
     unsafe {
         *framebuffer.offset((4 * pitch * 20 + 4 * 20) as isize) = 0xFFFFFFFF;
         *framebuffer.offset((4 * pitch * 20 + 4 * 21) as isize) = 0xFFFFFFFF;
