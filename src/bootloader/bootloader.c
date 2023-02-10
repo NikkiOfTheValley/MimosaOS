@@ -13,7 +13,7 @@ __asm(".globl	dump_stack\n"
 	"dump_stack:\n"
 	"	movq %rsp, %rdi\n"
 	"	jmp *dump_stack_helper@GOTPCREL(%rip)\n"
-	".size	dump_stack, .-dump_stack");
+	".size dump_stack, .-dump_stack");
 
 void dump_stack_helper(uint64_t rsp_val)
 {
@@ -32,6 +32,12 @@ void dump_stack_helper(uint64_t rsp_val)
 	}
 }
 #endif
+
+extern void halt(void);
+__asm(".globl   halt\n"
+	"halt:\n"
+    "   cli\n"
+	"	hlt\n");
 
 EFI_STATUS Status;
 EFI_INPUT_KEY Key;
@@ -379,7 +385,6 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     prog_entry |= (uint64_t)kernelBuf[30] << 48;
     prog_entry |= (uint64_t)kernelBuf[31] << 56;
 
-
     // Initilize a struct with the required framebuffer info to pass to the kernel, so drawing is still possible
 
     framebuffer_info_s framebuf;
@@ -388,7 +393,12 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     framebuf.height = gop->Mode->Info->VerticalResolution;
     framebuf.pitch = gop->Mode->Info->PixelsPerScanLine;
 
-    terminal_writestring("Jumping to kernel address\n");
+    //halt();
+    char addr_str[20];
+    to_hex_str((uintptr_t)kernelAddress + prog_entry, addr_str, 20);
+    char str[99];
+    strcat(2, str, 99, "Jumping to kernel address ", addr_str);
+    terminal_writestring(str);
 
     // Jump to the kernel address
     typedef int k_main(framebuffer_info_s framebuffer, EFI_MEMORY_DESCRIPTOR* memory_map);

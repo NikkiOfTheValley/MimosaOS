@@ -16,13 +16,46 @@ int cursorY = 1;
 int consoleHeight = -1;
 int consoleWidth = -1;
 
-size_t strlen(const char * _str)
+size_t strlen(const char* str)
 {
     // I know this isn't the most optimized way to do strlen, but I don't really care as this'll only be used a few times in the bootloader
     // on modern hardware, so it doesn't really matter much.
     size_t i = 0;
-    while(_str[i++]);
+    while(str[i++]);
     return i - 1;
+}
+
+char* strcpy(char* dest, const char* src)
+{
+    // Error if src and dest overlap
+    if (src + strlen(src) > dest || src < dest) { return NULL; }
+
+    char* temp = dest;
+    while((*dest++ = *src++) != '\0');
+    return temp;
+}
+
+bool strcat(uint32_t num_args, char* buf, size_t size, ...)
+{
+    size_t strsize = 0;
+    va_list ap;
+    va_start(ap, num_args);
+
+    for (size_t i = 0; i < num_args; i++)
+    {
+        strsize += strlen(va_arg(ap, char*));
+    }
+
+    strsize = 0;
+    va_start(ap, num_args);
+    for (size_t i = 0; i < num_args; i++)
+    {
+        char* s = va_arg(ap, char*);
+        strcpy(buf + strsize, s);
+        strsize += strlen(s);
+    }
+    va_end(ap);
+    buf[strsize] = '\0';
 }
 
 // Initilizes the "terminal" with the given framebuffer address and pitch
@@ -103,4 +136,41 @@ void terminal_write(const char* data, size_t length)
 void terminal_writestring(const char* data)
 {
 	terminal_write(data, strlen(data));
+}
+
+uint64_t num_digits(uint64_t i, uint32_t base)
+{
+    uint64_t digits = 1;
+    uint64_t power = 1;
+
+    while(i / power >= base)
+    {
+        ++digits;
+        power *= base;
+    }
+    return digits;
+}
+
+// Converts the given integer to a string-encoded hex address. Returns a negative integer and does not write to buf if failed.
+int to_hex_str(uint64_t n, char* buf, size_t size)
+{
+    uint64_t digits = num_digits(n, 16);
+    uint64_t i = digits - 1;
+
+    // The added digit is to account for the null terminator
+    if (size < digits + 1) { return -1; }
+    
+    while (n > 0)
+    {
+        uint8_t mod = n % 16;
+
+        if (mod >= 10)
+            buf[i--] = (mod - 10) + 'A';
+        else
+            buf[i--] = mod + '0';
+        
+        n /= 16;
+    }
+    buf[size - 1] = '\0';
+    return 1;
 }
