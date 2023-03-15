@@ -323,7 +323,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
         terminal_writestring("Please power off your machine. (I am too lazy to implement ACPI drivers)\n");
 
         // Stop here, so the user can power off without causing problems.
-        while (true) { }
+        //while (true) { }
     }
 
     // 1 = 32 bit, 2 = 64 bit
@@ -336,7 +336,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
         terminal_writestring("Please power off your machine. (I am too lazy to implement ACPI drivers)\n");
 
         // Stop here, so the user can power off without causing problems.
-        while (true) { }
+        //while (true) { }
     }
 
     // 1 = relocatable, 2 = executable, 3 = shared, 4 = core
@@ -352,7 +352,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
         terminal_writestring("Please power off your machine. (I am too lazy to implement ACPI drivers)\n");
 
         // Stop here, so the user can power off without causing problems.
-        while (true) { }
+        //while (true) { }
     }
 
     // 0x3E means x86-64
@@ -368,7 +368,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
         terminal_writestring("Please power off your machine. (I am too lazy to implement ACPI drivers)\n");
 
         // Stop here, so the user can power off without causing problems.
-        while (true) { }
+        //while (true) { }
     }
 
     // Quick hack so the kernel can actually execute. I don't know what could go wrong from this,
@@ -394,15 +394,15 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     framebuf.pitch = gop->Mode->Info->PixelsPerScanLine;
 
     //halt();
-    char addr_str[20];
-    to_hex_str((uintptr_t)kernelAddress + prog_entry, addr_str, 20);
-    char str[99];
-    strcat(2, str, 99, "Jumping to kernel address ", addr_str);
-    terminal_writestring(str);
+    //char addr_str[20];
+    //to_hex_str((uintptr_t)kernelAddress + prog_entry, addr_str, 20);
+    //char str[99];
+    //strcat(2, str, 99, "Jumping to kernel address ", addr_str);
+    //terminal_writestring(str);
 
     // Jump to the kernel address
     typedef int k_main(framebuffer_info_s framebuffer, EFI_MEMORY_DESCRIPTOR* memory_map);
-    k_main* k = (k_main*)kernelAddress + prog_entry;
+    k_main* k = (k_main*)kernelAddress;
     k(framebuf, memoryMap);
     
     // Framebuffer and data to do with writing to said framebuffer should still be valid, so this should still work.

@@ -22,30 +22,29 @@ pub struct MemoryDescriptor {
 }
 
 #[no_mangle]
-pub extern "C" fn _start(_framebuffer_info: FramebufferInfo, _memory_map: *const MemoryDescriptor) -> ! {
-    //let framebuffer = framebuffer_info.base_address as *mut u32;
-    //let pitch = framebuffer_info.pitch;
-
+pub extern "C" fn _start(framebuffer_info: FramebufferInfo, _memory_map: *const MemoryDescriptor) -> ! {
+    let framebuffer = framebuffer_info.base_address as *mut u32;
+    let pitch = framebuffer_info.pitch;
+    
     // Clear screen
-    //for y in 0..framebuffer_info.height {
-    //    for x in 0..framebuffer_info.width {
-    //        unsafe {
+    for y in 0..framebuffer_info.height {
+        for x in 0..framebuffer_info.width {
+            unsafe {
+                *framebuffer.offset((x * pitch + y) as isize) = 0x00000000;
+            }
+        }
+    }
 
-    //            *framebuffer.offset((pitch * y + x) as isize) = 0x00000000;
-    //        }
-    //    }
-    //}
-
-    //unsafe {
-    //    *framebuffer.offset((pitch * 20 + 1) as isize) = 0xFFFFFFFF;
-    //    *framebuffer.offset((pitch * 20 + 2) as isize) = 0xFFFFFFFF;
-    //    *framebuffer.offset((pitch * 20 + 3) as isize) = 0xFFFFFFFF;
-    //    *framebuffer.offset((pitch * 20 + 4) as isize) = 0xFFFFFFFF;
-    //    *framebuffer.offset((pitch * 20 + 5) as isize) = 0xFFFFFFFF;
-    //    *framebuffer.offset((pitch * 20 + 6) as isize) = 0xFFFFFFFF;
-    //    *framebuffer.offset((pitch * 20 + 7) as isize) = 0xFFFFFFFF;
-    //    *framebuffer.offset((pitch * 20 + 8) as isize) = 0xFFFFFFFF;
-    //}
+    unsafe {
+        *framebuffer.offset((5 * pitch + 5) as isize) = 0xFFFFFFFF;
+        *framebuffer.offset((6 * pitch + 5) as isize) = 0xFFFFFFFF;
+        *framebuffer.offset((7 * pitch + 5) as isize) = 0xFFFFFFFF;
+        *framebuffer.offset((8 * pitch + 5) as isize) = 0xFFFFFFFF;
+        *framebuffer.offset((9 * pitch + 5) as isize) = 0xFFFFFFFF;
+        *framebuffer.offset((10 * pitch + 5) as isize) = 0xFFFFFFFF;
+        *framebuffer.offset((11 * pitch + 5) as isize) = 0xFFFFFFFF;
+        *framebuffer.offset((12 * pitch + 5) as isize) = 0xFFFFFFFF;
+    }
 
     loop {}
 }
